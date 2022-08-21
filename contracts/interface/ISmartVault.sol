@@ -148,7 +148,7 @@ interface ISmartVault {
     uint256 _duration,
     bool _lockAllowed,
     address _rewardToken,
-    uint256 _depositFee
+    uint _depositFee
   ) external;
 
   function initializeVaultStorage(
