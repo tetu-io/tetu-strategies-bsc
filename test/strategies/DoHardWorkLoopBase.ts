@@ -343,7 +343,7 @@ export class DoHardWorkLoopBase {
     // strategy should not contain any tokens in the end
     const rts = await this.strategy.rewardTokens();
     for (const rt of rts) {
-      if (rt.toLowerCase() === this.underlying.toLowerCase()) {
+      if (rt === BscAddresses.ZERO_ADDRESS || rt.toLowerCase() === this.underlying.toLowerCase()) {
         continue;
       }
       const rtBal = await TokenUtils.balanceOf(rt, this.strategy.address);
@@ -357,16 +357,16 @@ export class DoHardWorkLoopBase {
       expect(vaultBalanceAfter.sub(this.vaultRTBal)).is.not.eq("0", "vault reward should increase");
     }
 
-    if (this.bbRatio !== 0 && !PPFS_NO_INCREASE.has(await this.strategy.STRATEGY_NAME())) {
+    if (this.core.psVault.address !== BscAddresses.ZERO_ADDRESS && this.bbRatio !== 0 && !PPFS_NO_INCREASE.has(await this.strategy.STRATEGY_NAME())) {
       // check ps PPFS
-      if (this.core.psVault.address !== BscAddresses.ZERO_ADDRESS) {
-        // check ps balance
-        const psBalanceAfter = await TokenUtils.balanceOf(this.core.rewardToken.address, this.core.psVault.address);
-        expect(psBalanceAfter.sub(this.psBal)).is.not.eq("0", "ps balance should increase");
 
-        const psSharePriceAfter = await this.core.psVault.getPricePerFullShare();
-        expect(psSharePriceAfter.sub(this.psPPFS)).is.not.eq("0", "ps share price should increase");
-      }
+      // check ps balance
+      const psBalanceAfter = await TokenUtils.balanceOf(this.core.rewardToken.address, this.core.psVault.address);
+      expect(psBalanceAfter.sub(this.psBal)).is.not.eq("0", "ps balance should increase");
+
+      const psSharePriceAfter = await this.core.psVault.getPricePerFullShare();
+      expect(psSharePriceAfter.sub(this.psPPFS)).is.not.eq("0", "ps share price should increase");
+
       // check reward for user
       const rewardBalanceAfter = await TokenUtils.balanceOf(this.core.psVault.address, this.user.address);
       expect(rewardBalanceAfter.sub(this.userRTBal).toString())

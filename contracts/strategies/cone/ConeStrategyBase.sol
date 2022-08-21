@@ -101,9 +101,13 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
 
   /// @dev Collect profit and do something useful with them
   function doHardWork() external override virtual hardWorkers onlyNotPausedInvesting {
-    // make useful things with tokens
-    liquidateReward();
-    coneStacker.lock(0, true);
+    IConeStacker _coneStacker = coneStacker;
+    // we can not claim rewards with zero balance in the stacker contract
+    if (_coneStacker.userBalance(gauge, address(this)) != 0) {
+      // make useful things with tokens
+      liquidateReward();
+    }
+    _coneStacker.lock(0, true);
   }
 
   /// @dev Stake underlying
@@ -125,7 +129,10 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
 
   /// @dev Withdraw without care about rewards
   function emergencyWithdrawFromPool() internal override {
-    coneStacker.withdrawFromGauge(_underlying(), gauge, _rewardPoolBalance());
+    uint balance = _rewardPoolBalance();
+    if (balance > 0) {
+      coneStacker.withdrawFromGauge(_underlying(), gauge, balance);
+    }
   }
 
   function liquidateReward() internal override {

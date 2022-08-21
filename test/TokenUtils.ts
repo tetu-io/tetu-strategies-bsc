@@ -29,6 +29,9 @@ export class TokenUtils {
   ]);
 
   public static async balanceOf(tokenAddress: string, account: string): Promise<BigNumber> {
+    if (tokenAddress.toLowerCase() === BscAddresses.ZERO_ADDRESS) {
+      return BigNumber.from(0);
+    }
     console.log('balanceOf', tokenAddress, account)
     return ERC20__factory.connect(tokenAddress, ethers.provider).balanceOf(account);
   }

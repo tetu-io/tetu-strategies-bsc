@@ -111,7 +111,7 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
         VE.increaseAmount(_veId, amount);
       }
       if (isClaim) {
-        if(VE.lockedEnd(_veId) - MAX_LOCK < (block.timestamp / 1 weeks * 1 weeks)) {
+        if (VE.lockedEnd(_veId) - MAX_LOCK < (block.timestamp / 1 weeks * 1 weeks)) {
           VE.increaseUnlockTime(_veId, MAX_LOCK);
         }
         VE_DIST.claim(_veId);
@@ -146,6 +146,8 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
     IGauge(gauge).withdraw(amount);
     if (balance == amount) {
       delete gaugeUser[gauge];
+    } else {
+      gaugeBalance[gauge] = balance - amount;
     }
     IERC20(pool).safeTransfer(msg.sender, amount);
   }
