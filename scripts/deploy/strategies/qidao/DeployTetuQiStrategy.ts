@@ -2,7 +2,7 @@ import {ethers} from "hardhat";
 import {DeployerUtilsLocal} from "../../DeployerUtilsLocal";
 import {IERC20Extended__factory} from "../../../../typechain";
 import {writeFileSync} from "fs";
-import {MaticAddresses} from "../../../addresses/MaticAddresses";
+import {BscAddresses} from "../../../addresses/BscAddresses";
 
 const strategyContractName = 'StrategyQiStaking';
 

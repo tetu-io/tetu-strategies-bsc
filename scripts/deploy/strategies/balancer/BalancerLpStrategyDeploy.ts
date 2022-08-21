@@ -6,16 +6,16 @@ import {
   StrategyTetuMeshLp__factory
 } from "../../../../typechain";
 import {writeFileSync} from "fs";
-import {MaticAddresses} from "../../../addresses/MaticAddresses";
+import {BscAddresses} from "../../../addresses/BscAddresses";
 
 const strategyContractName = 'StrategyBalancerPool';
 const VAULT = '0xBD06685a0e7eBd7c92fc84274b297791F3997ed3';
-const UNDERLYING = MaticAddresses.BALANCER_POOL_tetuBAL_BPT;
-const POOL_ID = MaticAddresses.BALANCER_POOL_tetuBAL_BPT_ID;
-const GAUGE = MaticAddresses.BALANCER_GAUGE_tetuBAL_BPT;
-const DEPOSIT_TOKEN = MaticAddresses.tetuBAL;
+const UNDERLYING = BscAddresses.BALANCER_POOL_tetuBAL_BPT;
+const POOL_ID = BscAddresses.BALANCER_POOL_tetuBAL_BPT_ID;
+const GAUGE = BscAddresses.BALANCER_GAUGE_tetuBAL_BPT;
+const DEPOSIT_TOKEN = BscAddresses.tetuBAL;
 const BUYBACK_RATIO = 20_00;
-const REWARD_TOKENS = [MaticAddresses.BAL_TOKEN];
+const REWARD_TOKENS = [BscAddresses.BAL_TOKEN];
 
 async function main() {
   const signer = (await ethers.getSigners())[0];

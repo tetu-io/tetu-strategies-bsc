@@ -13,7 +13,7 @@ import {
 import {DeployerUtilsLocal} from "../../scripts/deploy/DeployerUtilsLocal";
 import {TokenUtils} from "../TokenUtils";
 import {formatUnits, parseUnits} from "ethers/lib/utils";
-import {MaticAddresses} from "../../scripts/addresses/MaticAddresses";
+import {BscAddresses} from "../../scripts/addresses/BscAddresses";
 
 
 const {expect} = chai;
@@ -21,8 +21,8 @@ chai.use(chaiAsPromised);
 
 const DX_TETU = '0xAcEE7Bd17E7B04F7e48b29c0C91aF67758394f0f';
 const TETU_BAL = '0x7fC9E0Aa043787BFad28e29632AdA302C790Ce33';
-const TETU_BAL_BPT = MaticAddresses.BALANCER_POOL_tetuBAL_BPT;
-const TETU_BAL_BPT_ID = MaticAddresses.BALANCER_POOL_tetuBAL_BPT_ID;
+const TETU_BAL_BPT = BscAddresses.BALANCER_POOL_tetuBAL_BPT;
+const TETU_BAL_BPT_ID = BscAddresses.BALANCER_POOL_tetuBAL_BPT_ID;
 const BALANCER_VAULT = '0xBA12222222228d8Ba445958a75a0704d566BF2C8';
 
 describe("Base Vaults tests", function () {

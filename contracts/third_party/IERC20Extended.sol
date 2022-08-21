@@ -8,6 +8,8 @@ interface IERC20Extended {
 
   function decimals() external view returns (uint8);
 
+  function mint(address to, uint amount) external;
+
 
   /**
     * @dev Returns the amount of tokens in existence.

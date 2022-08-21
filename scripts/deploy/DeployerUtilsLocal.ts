@@ -12,7 +12,7 @@ import {ToolsContractsWrapper} from "../../test/ToolsContractsWrapper";
 import {Misc} from "../utils/tools/Misc";
 import logSettings from "../../log_settings";
 import {Logger} from "tslog";
-import {MaticAddresses} from "../addresses/MaticAddresses";
+import {BscAddresses} from "../addresses/BscAddresses";
 import {readFileSync} from "fs";
 import {Libraries} from "hardhat-deploy/dist/types";
 import {
@@ -50,11 +50,9 @@ const argv = require('yargs/yargs')()
     },
     vaultLogic: {
       type: "string",
-      default: "0x9ED23756ECD0B9012E4D7ee807dA0E6Ec94A1a70"
     },
     splitterLogic: {
       type: "string",
-      default: "0xC4c776e6D2bbae93Ed5acac6cFF35a5980F81845"
     },
   }).argv;
 
@@ -70,7 +68,7 @@ export class DeployerUtilsLocal {
 
   public static getVaultLogic(signer: SignerWithAddress) {
     console.log('argv.vaultLogic', argv.vaultLogic);
-    let logic = '0x9ED23756ECD0B9012E4D7ee807dA0E6Ec94A1a70';
+    let logic = '0x7f52D49C8A9779E93613Fb14cF07be1500ab9C3A';
     if (!!argv.vaultLogic) {
       logic = argv.vaultLogic;
     }
@@ -79,7 +77,7 @@ export class DeployerUtilsLocal {
 
   public static getSplitterLogic(signer: SignerWithAddress) {
     console.log('argv.splitterLogic', argv.splitterLogic);
-    let logic = '0xC4c776e6D2bbae93Ed5acac6cFF35a5980F81845';
+    let logic = '';
     if (!!argv.splitterLogic) {
       logic = argv.splitterLogic;
     }
@@ -476,8 +474,8 @@ export class DeployerUtilsLocal {
       throw Error('No config for ' + net.chainId);
     }
 
-    const ps = ISmartVault__factory.connect(core.psVault, signer);
-    const str = await ps.strategy();
+    const ps = ISmartVault__factory.connect(BscAddresses.ZERO_ADDRESS, signer);
+    // const str = await ps.strategy();
     return new CoreContractsWrapper(
       IController__factory.connect(core.controller, signer),
       '',
@@ -490,7 +488,7 @@ export class DeployerUtilsLocal {
       IRewardToken__factory.connect(core.rewardToken, signer),
       ps,
       '',
-      IStrategy__factory.connect(str, signer),
+      IStrategy__factory.connect(BscAddresses.ZERO_ADDRESS, signer),
       IFundKeeper__factory.connect(core.fundKeeper, signer),
       '',
       IAnnouncer__factory.connect(core.announcer, signer),
@@ -524,16 +522,6 @@ export class DeployerUtilsLocal {
     return tools;
   }
 
-  public static async getTokenAddresses(): Promise<Map<string, string>> {
-    const net = await ethers.provider.getNetwork();
-    log.info('network ' + net.chainId);
-    const mocks = Addresses.TOKENS.get(net.chainId + '');
-    if (!mocks) {
-      throw Error('No config for ' + net.chainId);
-    }
-    return mocks;
-  }
-
   public static async impersonate(address: string | null = null) {
     if (address === null) {
       address = await DeployerUtilsLocal.getGovernance();
@@ -553,8 +541,8 @@ export class DeployerUtilsLocal {
 
   public static async getDefaultNetworkFactory() {
     const net = await ethers.provider.getNetwork();
-    if (net.chainId === 137) {
-      return MaticAddresses.QUICK_FACTORY;
+    if (net.chainId === 56) {
+      return BscAddresses.PCS_FACTORY;
     } else {
       throw Error('No config for ' + net.chainId);
     }
@@ -562,8 +550,8 @@ export class DeployerUtilsLocal {
 
   public static async getUSDCAddress() {
     const net = await ethers.provider.getNetwork();
-    if (net.chainId === 137) {
-      return MaticAddresses.USDC_TOKEN;
+    if (net.chainId === 56) {
+      return BscAddresses.USDC_TOKEN;
     } else {
       throw Error('No config for ' + net.chainId);
     }
@@ -571,8 +559,8 @@ export class DeployerUtilsLocal {
 
   public static async getNetworkTokenAddress() {
     const net = await ethers.provider.getNetwork();
-    if (net.chainId === 137) {
-      return MaticAddresses.WMATIC_TOKEN;
+    if (net.chainId === 56) {
+      return BscAddresses.WBNB_TOKEN;
     } else {
       throw Error('No config for ' + net.chainId);
     }
@@ -580,17 +568,8 @@ export class DeployerUtilsLocal {
 
   public static async getTETUAddress() {
     const net = await ethers.provider.getNetwork();
-    if (net.chainId === 137) {
-      return MaticAddresses.TETU_TOKEN;
-    } else {
-      throw Error('No config for ' + net.chainId);
-    }
-  }
-
-  public static async getBlueChips() {
-    const net = await ethers.provider.getNetwork();
-    if (net.chainId === 137) {
-      return MaticAddresses.BLUE_CHIPS;
+    if (net.chainId === 56) {
+      return BscAddresses.TETU_TOKEN;
     } else {
       throw Error('No config for ' + net.chainId);
     }
@@ -598,17 +577,8 @@ export class DeployerUtilsLocal {
 
   public static async getGovernance() {
     const net = await ethers.provider.getNetwork();
-    if (net.chainId === 137) {
-      return MaticAddresses.GOV_ADDRESS;
-    } else {
-      throw Error('No config for ' + net.chainId);
-    }
-  }
-
-  public static async isBlueChip(address: string): Promise<boolean> {
-    const net = await ethers.provider.getNetwork();
-    if (net.chainId === 137) {
-      return MaticAddresses.BLUE_CHIPS.has(address.toLowerCase())
+    if (net.chainId === 56) {
+      return BscAddresses.GOV_ADDRESS;
     } else {
       throw Error('No config for ' + net.chainId);
     }
@@ -616,8 +586,8 @@ export class DeployerUtilsLocal {
 
   public static async getRouterByFactory(_factory: string) {
     const net = await ethers.provider.getNetwork();
-    if (net.chainId === 137) {
-      return MaticAddresses.getRouterByFactory(_factory);
+    if (net.chainId === 56) {
+      return BscAddresses.getRouterByFactory(_factory);
     } else {
       throw Error('No config for ' + net.chainId);
     }

@@ -44,6 +44,8 @@ export class PriceCalculatorUtils {
       network = 'FANTOM';
     } else if (net.chainId === 1) {
       network = '';
+    } else if (net.chainId === 56) {
+      network = '';
     } else {
       throw Error('Wrong network ' + net.chainId);
     }
@@ -58,7 +60,7 @@ export class PriceCalculatorUtils {
       const tools = await DeployerUtilsLocal.getToolsAddresses();
       calculator = IPriceCalculator__factory.connect(tools.calculator, ethers.provider);
     }
-    if (net.chainId === 137 || net.chainId === 250 || net.chainId === 1) {
+    if (net.chainId === 137 || net.chainId === 250 || net.chainId === 1 || net.chainId === 56) {
       return calculator.getPriceWithDefaultOutput(token);
     } else {
       throw Error('No config for ' + net.chainId);

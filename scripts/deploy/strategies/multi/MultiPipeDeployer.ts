@@ -12,7 +12,7 @@ import {
   StrategyMaiBal__factory,
   StrategyAaveMaiBal__factory
 } from "../../../../typechain";
-import {MaticAddresses} from "../../../addresses/MaticAddresses";
+import {BscAddresses} from "../../../addresses/BscAddresses";
 import {RunHelper} from "../../../utils/tools/RunHelper";
 // import {StrategyTestUtils} from "../../../../test/strategies/StrategyTestUtils";
 import {CoreContractsWrapper} from "../../../../test/CoreContractsWrapper";
@@ -32,10 +32,10 @@ export class MultiPipeDeployer {
     const p = AaveAmPipe__factory.connect(pipe[0].address, signer);
     await RunHelper.runAndWait(() => p.initialize(
       {
-        pool: MaticAddresses.AAVE_LENDING_POOL,
+        pool: BscAddresses.AAVE_LENDING_POOL,
         sourceToken: underlying,
         lpToken: amToken,
-        rewardToken: MaticAddresses.WMATIC_TOKEN
+        rewardToken: BscAddresses.WMATIC_TOKEN
       },
       {gasLimit: 12_000_000}
     ));
@@ -54,7 +54,7 @@ export class MultiPipeDeployer {
       {
         sourceToken: amToken,
         lpToken: camToken,
-        rewardToken: MaticAddresses.QI_TOKEN
+        rewardToken: BscAddresses.QI_TOKEN
       },
       {gasLimit: 12_000_000}
     ));
@@ -79,10 +79,10 @@ export class MultiPipeDeployer {
       {
         sourceToken,
         stablecoin,
-        borrowToken: MaticAddresses.miMATIC_TOKEN,
+        borrowToken: BscAddresses.miMATIC_TOKEN,
         targetPercentage,
         maxImbalance: '100', // max targetPercentage deviation (+/-) to call rebalance
-        rewardToken: MaticAddresses.QI_TOKEN,
+        rewardToken: BscAddresses.QI_TOKEN,
         collateralNumerator,
       },
       {gasLimit: 12_000_000}
@@ -98,12 +98,12 @@ export class MultiPipeDeployer {
     const p = BalVaultPipe__factory.connect(pipe[0].address, signer);
     await RunHelper.runAndWait(() => p.initialize(
       {
-        sourceToken: MaticAddresses.miMATIC_TOKEN,
-        vault: MaticAddresses.BALANCER_VAULT,
-        poolID: MaticAddresses.BALANCER_POOL_MAI_STABLE_ID,
+        sourceToken: BscAddresses.miMATIC_TOKEN,
+        vault: BscAddresses.BALANCER_VAULT,
+        poolID: BscAddresses.BALANCER_POOL_MAI_STABLE_ID,
         tokenIndex: '2', // tokenIndex
-        lpToken: MaticAddresses.BALANCER_STABLE_POOL, // Balancer Polygon Stable Pool (BPSP)
-        rewardTokens: [MaticAddresses.BAL_TOKEN, MaticAddresses.QI_TOKEN],
+        lpToken: BscAddresses.BALANCER_STABLE_POOL, // Balancer Polygon Stable Pool (BPSP)
+        rewardTokens: [BscAddresses.BAL_TOKEN, BscAddresses.QI_TOKEN],
       },
       {gasLimit: 12_000_000}
     ));

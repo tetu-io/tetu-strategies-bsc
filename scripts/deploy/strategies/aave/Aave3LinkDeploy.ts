@@ -2,12 +2,12 @@ import {ethers} from "hardhat";
 import {DeployerUtilsLocal} from "../../DeployerUtilsLocal";
 import {Aave3Strategy__factory, StrategyTetuMeshLp__factory} from "../../../../typechain";
 import {writeFileSync} from "fs";
-import {MaticAddresses} from "../../../addresses/MaticAddresses";
+import {BscAddresses} from "../../../addresses/BscAddresses";
 import {RunHelper} from "../../../utils/tools/RunHelper";
 
 const strategyContractName = 'Aave3Strategy';
 const SPLITTER = '0xA68254B2B84E2e74cA14ED461B1e4F6612F366f1';
-const underlying = MaticAddresses.LINK_TOKEN;
+const underlying = BscAddresses.LINK_TOKEN;
 
 async function main() {
   const signer = (await ethers.getSigners())[0];

@@ -1,15 +1,11 @@
-import {ethers} from "hardhat";
 import {
-  IFireBirdFactory,
-  IFireBirdRouter,
-  IUniswapV2Factory,
-  IUniswapV2Pair,
-  IUniswapV2Router02,
   IPriceCalculator,
-  IFireBirdRouter__factory,
-  IFireBirdFactory__factory,
+  IUniswapV2Factory,
+  IUniswapV2Factory__factory,
+  IUniswapV2Pair,
   IUniswapV2Pair__factory,
-  IUniswapV2Router02__factory, IUniswapV2Factory__factory, IDystopiaRouter, IDystopiaRouter__factory
+  IUniswapV2Router02,
+  IUniswapV2Router02__factory
 } from "../typechain";
 import {BigNumber, utils} from "ethers";
 import {TokenUtils} from "./TokenUtils";
@@ -21,7 +17,7 @@ import {CoreContractsWrapper} from "./CoreContractsWrapper";
 import {DeployerUtilsLocal} from "../scripts/deploy/DeployerUtilsLocal";
 import {Misc} from "../scripts/utils/tools/Misc";
 import {PriceCalculatorUtils} from "./PriceCalculatorUtils";
-import {MaticAddresses} from "../scripts/addresses/MaticAddresses";
+import {BscAddresses} from "../scripts/addresses/BscAddresses";
 
 export class UniswapUtils {
   public static deadline = "1000000000000";
@@ -57,50 +53,29 @@ export class UniswapUtils {
     expect(+utils.formatUnits(bal, decimals)).is.greaterThanOrEqual(+utils.formatUnits(amountToSell, decimals),
       'Not enough ' + await TokenUtils.tokenSymbol(_route[0]));
 
-    if (_router.toLowerCase() === MaticAddresses.FIREBIRD_ROUTER) {
-      console.log("firebird swap")
-      expect(_route.length === 2, 'firebird wrong length path');
-      const router = IFireBirdRouter__factory.connect(_router, sender);
-      await TokenUtils.approve(_route[0], sender, router.address, amountToSell);
-
-      const fbFac = IFireBirdFactory__factory.connect(MaticAddresses.FIREBIRD_FACTORY, sender);
-      const fbPair = await fbFac.getPair(_route[0], _route[1], 50, 20);
-
-      return router.swapExactTokensForTokens(
-        _route[0],
-        _route[1],
+    const router = await UniswapUtils.connectRouter(_router, sender);
+    await TokenUtils.approve(_route[0], sender, router.address, amountToSell);
+    if (UniswapUtils.isFeeToken(_route[0]) || UniswapUtils.isFeeToken(_route[1])) {
+      return router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
         BigNumber.from(amountToSell),
         BigNumber.from("0"),
-        [fbPair],
+        _route,
         _to,
         UniswapUtils.deadline
       );
     } else {
-      const router = await UniswapUtils.connectRouter(_router, sender);
-      await TokenUtils.approve(_route[0], sender, router.address, amountToSell);
-      if (UniswapUtils.isFeeToken(_route[0]) || UniswapUtils.isFeeToken(_route[1])) {
-        return router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-          BigNumber.from(amountToSell),
-          BigNumber.from("0"),
-          _route,
-          _to,
-          UniswapUtils.deadline
-        );
-      } else {
-        return router.swapExactTokensForTokens(
-          BigNumber.from(amountToSell),
-          BigNumber.from("0"),
-          _route,
-          _to,
-          UniswapUtils.deadline
-        );
-      }
+      return router.swapExactTokensForTokens(
+        BigNumber.from(amountToSell),
+        BigNumber.from("0"),
+        _route,
+        _to,
+        UniswapUtils.deadline
+      );
     }
   }
 
   private static isFeeToken(token: string) {
-    return token.toLowerCase() === MaticAddresses.SPHERE_TOKEN.toLowerCase()
-      || token.toLowerCase() === MaticAddresses.SPHEREV2_TOKEN.toLowerCase();
+    return false
   }
 
   public static async addLiquidity(
@@ -130,33 +105,17 @@ export class UniswapUtils {
     await RunHelper.runAndWait(() => TokenUtils.approve(tokenA, sender, _router, amountA), true, wait);
     await RunHelper.runAndWait(() => TokenUtils.approve(tokenB, sender, _router, amountB), true, wait);
 
-    if (_factory.toLowerCase() === MaticAddresses.FIREBIRD_FACTORY.toLowerCase()) {
-      const pair = await UniswapUtils.getPairFromFactory(sender, tokenA, tokenB, _factory);
-      const router = IFireBirdRouter__factory.connect(_router, sender);
-      await RunHelper.runAndWait(() => router.addLiquidity(
-        pair,
-        tokenA,
-        tokenB,
-        amountA,
-        amountB,
-        1,
-        1,
-        sender.address,
-        UniswapUtils.deadline
-      ), true, wait);
-    } else {
-      const router = await UniswapUtils.connectRouter(_router, sender);
-      await RunHelper.runAndWait(() => router.addLiquidity(
-        tokenA,
-        tokenB,
-        amountA,
-        amountB,
-        1,
-        1,
-        sender.address,
-        UniswapUtils.deadline
-      ), true, wait);
-    }
+    const router = await UniswapUtils.connectRouter(_router, sender);
+    await RunHelper.runAndWait(() => router.addLiquidity(
+      tokenA,
+      tokenB,
+      amountA,
+      amountB,
+      1,
+      1,
+      sender.address,
+      UniswapUtils.deadline
+    ), true, wait);
 
     const factory = await UniswapUtils.connectFactory(_factory, sender);
     const pairAdr = UniswapUtils.getPairFromFactory(sender, tokenA, tokenB, factory.address);
@@ -240,7 +199,7 @@ export class UniswapUtils {
     console.log('USDC bought', usdcBal.toString());
     expect(+utils.formatUnits(usdcBal, 6)).is.greaterThanOrEqual(+amount);
 
-    if (core.rewardToken.address.toLowerCase() === MaticAddresses.TETU_TOKEN) {
+    if (core.rewardToken.address.toLowerCase() === BscAddresses.TETU_TOKEN) {
       await TokenUtils.getToken(core.rewardToken.address, signer.address, utils.parseUnits(amount))
     } else {
       await MintHelperUtils.mint(core.controller, core.announcer, (+amount * 2).toString(), signer.address);
@@ -299,6 +258,7 @@ export class UniswapUtils {
     core: CoreContractsWrapper,
     amount: string
   ) {
+    console.log('createTetuUsdc')
     const start = Date.now();
     const usdc = await DeployerUtilsLocal.getUSDCAddress();
     const tetu = core.rewardToken.address.toLowerCase();
@@ -344,7 +304,7 @@ export class UniswapUtils {
     // const symbol = await TokenUtils.tokenSymbol(token);
     // const balanceBefore = +utils.formatUnits(await TokenUtils.balanceOf(token, signer.address), dec);
     // console.log('try to buy', symbol, amountForSell.toString(), 'balance', balanceBefore);
-    // if (token === MaticAddresses.WMATIC_TOKEN) {
+    // if (token === BscAddresses.WMATIC_TOKEN) {
     //   return RunHelper.runAndWait(() =>
     //       TokenUtils.wrapMatic(signer, utils.formatUnits(amountForSell, 18)),
     //     true, wait);
@@ -412,14 +372,9 @@ export class UniswapUtils {
   }
 
   public static async getPairFromFactory(signer: SignerWithAddress, token0: string, token1: string, factory: string): Promise<string> {
-    if (factory.toLowerCase() === MaticAddresses.FIREBIRD_FACTORY.toLowerCase()) {
-      console.log('Firebird factory');
-      const factoryCtr = IFireBirdFactory__factory.connect(factory, signer);
-      return factoryCtr.getPair(token0, token1, 50, 20);
-    } else {
-      const factoryCtr = await UniswapUtils.connectFactory(factory, signer);
-      return factoryCtr.getPair(token0, token1);
-    }
+    const factoryCtr = await UniswapUtils.connectFactory(factory, signer);
+    console.log('getPairFromFactory', token0, token1)
+    return factoryCtr.getPair(token0, token1);
   }
 
   public static encodePrice(reserve0: BigNumber, reserve1: BigNumber) {

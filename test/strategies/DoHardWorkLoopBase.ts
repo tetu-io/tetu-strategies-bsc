@@ -9,6 +9,7 @@ import {PPFS_NO_INCREASE, VaultUtils} from "../VaultUtils";
 import {TimeUtils} from "../TimeUtils";
 import {expect} from "chai";
 import {PriceCalculatorUtils} from "../PriceCalculatorUtils";
+import {BscAddresses} from "../../scripts/addresses/BscAddresses";
 
 
 export class DoHardWorkLoopBase {
@@ -85,7 +86,7 @@ export class DoHardWorkLoopBase {
 
   protected async init() {
     this.undDec = await TokenUtils.decimals(this.underlying);
-    this.vaultRt = (await this.vault.rewardTokens())[0].toLowerCase()
+    this.vaultRt = (await this.vault.rewardTokens())[0]?.toLowerCase()
   }
 
   protected async initialCheckVault() {
@@ -97,7 +98,9 @@ export class DoHardWorkLoopBase {
     this.userRTBal = await TokenUtils.balanceOf(this.vaultRt, this.user.address);
     this.vaultRTBal = await TokenUtils.balanceOf(this.vaultRt, this.vault.address);
     this.psBal = await TokenUtils.balanceOf(this.vaultRt, this.core.psVault.address);
-    this.psPPFS = await this.core.psVault.getPricePerFullShare();
+    if (this.core.psVault.address !== BscAddresses.ZERO_ADDRESS) {
+      this.psPPFS = await this.core.psVault.getPricePerFullShare();
+    }
     this.startTs = await Misc.getBlockTsFromChain();
     this.bbRatio = (await this.strategy.buyBackRatio()).toNumber();
     console.log('initialSnapshot end')
@@ -325,13 +328,15 @@ export class DoHardWorkLoopBase {
     // we need to have strategy without rewards tokens in the end
     await TimeUtils.advanceNBlocks(3000);
     await this.withdraw(true, BigNumber.from(0));
-    // exit for signer
+    console.log('exit for signer')
     await this.vault.connect(this.signer).exit();
+    console.log('withdrawAllToVault')
     await this.strategy.withdrawAllToVault();
-
+    console.log('investedUnderlyingBalance eq 0')
     expect(await this.strategy.investedUnderlyingBalance()).is.eq(0);
 
     // need to call hard work for sell a little excess rewards
+    console.log('call hard work')
     await this.strategy.doHardWork();
 
 
@@ -347,23 +352,26 @@ export class DoHardWorkLoopBase {
     }
 
     // check vault balance
-    const vaultBalanceAfter = await TokenUtils.balanceOf(this.core.psVault.address, this.vault.address);
-    expect(vaultBalanceAfter.sub(this.vaultRTBal)).is.not.eq("0", "vault reward should increase");
-
-    if (this.bbRatio !== 0 && !PPFS_NO_INCREASE.has(await this.strategy.STRATEGY_NAME())) {
-      // check ps balance
-      const psBalanceAfter = await TokenUtils.balanceOf(this.core.rewardToken.address, this.core.psVault.address);
-      expect(psBalanceAfter.sub(this.psBal)).is.not.eq("0", "ps balance should increase");
-
-      // check ps PPFS
-      const psSharePriceAfter = await this.core.psVault.getPricePerFullShare();
-      expect(psSharePriceAfter.sub(this.psPPFS)).is.not.eq("0", "ps share price should increase");
+    if (this.core.psVault.address !== BscAddresses.ZERO_ADDRESS) {
+      const vaultBalanceAfter = await TokenUtils.balanceOf(this.core.psVault.address, this.vault.address);
+      expect(vaultBalanceAfter.sub(this.vaultRTBal)).is.not.eq("0", "vault reward should increase");
     }
 
-    // check reward for user
-    const rewardBalanceAfter = await TokenUtils.balanceOf(this.core.psVault.address, this.user.address);
-    expect(rewardBalanceAfter.sub(this.userRTBal).toString())
-      .is.not.eq("0", "should have earned xTETU rewards");
+    if (this.bbRatio !== 0 && !PPFS_NO_INCREASE.has(await this.strategy.STRATEGY_NAME())) {
+      // check ps PPFS
+      if (this.core.psVault.address !== BscAddresses.ZERO_ADDRESS) {
+        // check ps balance
+        const psBalanceAfter = await TokenUtils.balanceOf(this.core.rewardToken.address, this.core.psVault.address);
+        expect(psBalanceAfter.sub(this.psBal)).is.not.eq("0", "ps balance should increase");
+
+        const psSharePriceAfter = await this.core.psVault.getPricePerFullShare();
+        expect(psSharePriceAfter.sub(this.psPPFS)).is.not.eq("0", "ps share price should increase");
+      }
+      // check reward for user
+      const rewardBalanceAfter = await TokenUtils.balanceOf(this.core.psVault.address, this.user.address);
+      expect(rewardBalanceAfter.sub(this.userRTBal).toString())
+        .is.not.eq("0", "should have earned xTETU rewards");
+    }
 
     const userDepositedN = +utils.formatUnits(this.userDeposited, this.undDec);
     // some pools have auto compounding so user balance can increase

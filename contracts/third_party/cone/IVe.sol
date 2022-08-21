@@ -60,4 +60,6 @@ interface IVe {
   function voting(uint tokenId) external;
 
   function abstain(uint tokenId) external;
+
+  function lockedEnd(uint _tokenId) external view returns (uint);
 }

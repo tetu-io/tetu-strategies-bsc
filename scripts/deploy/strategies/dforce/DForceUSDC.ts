@@ -2,11 +2,11 @@ import {ethers} from "hardhat";
 import {DeployerUtilsLocal} from "../../DeployerUtilsLocal";
 import {IERC20Extended__factory} from "../../../../typechain";
 import {writeFileSync} from "fs";
-import {MaticAddresses} from "../../../addresses/MaticAddresses";
+import {BscAddresses} from "../../../addresses/BscAddresses";
 
 const strategyContractName = 'StrategyDForceFold';
 const VAULT = '0x26030c3e3790fF4e1236585f2650AE7da56a752C';
-const UNDERLYING = MaticAddresses.USDC_TOKEN;
+const UNDERLYING = BscAddresses.USDC_TOKEN;
 const I_TOKEN = "0x5268b3c4afb0860D365a093C184985FCFcb65234";
 const BORROW_FACTOR = 8000;
 const COLLATERAL_FACTOR = 8499;

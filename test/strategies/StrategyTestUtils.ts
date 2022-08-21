@@ -1,6 +1,6 @@
 import {DeployerUtilsLocal} from "../../scripts/deploy/DeployerUtilsLocal";
 import {UniswapUtils} from "../UniswapUtils";
-import {MaticAddresses} from "../../scripts/addresses/MaticAddresses";
+import {BscAddresses} from "../../scripts/addresses/BscAddresses";
 import {CoreContractsWrapper} from "../CoreContractsWrapper";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {
@@ -36,7 +36,7 @@ export class StrategyTestUtils {
   ): Promise<[ISmartVault, IStrategy, string]> {
     let reward = Misc.ZERO_ADDRESS;
     if(addXTetuReward) {
-      reward = core.psVault.address;
+      reward = core.rewardToken.address;
     }
     const start = Date.now();
     log.info("Starting deploy")
@@ -114,7 +114,7 @@ export class StrategyTestUtils {
 
   public static async commonTests(strategy: IStrategy, underlying: string) {
     expect(await strategy.unsalvageableTokens(underlying)).is.eq(true);
-    expect(await strategy.unsalvageableTokens(MaticAddresses.ZERO_ADDRESS)).is.eq(false);
+    expect(await strategy.unsalvageableTokens(BscAddresses.ZERO_ADDRESS)).is.eq(false);
     expect((await strategy.buyBackRatio()).toNumber()).is.lessThanOrEqual(100_00)
     expect(await strategy.platform()).is.not.eq(0);
     expect((await strategy.assets()).length).is.not.eq(0);

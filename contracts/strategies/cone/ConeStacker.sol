@@ -42,10 +42,13 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
   //                VARIABLES
   // ************************************************
 
+  /// @dev General veNFT
   uint public veId;
+  /// @dev Allowed depositors
   mapping(address => bool) public depositors;
-  /// @dev Gauge balance
+  /// @dev Gauge => balance for the current user
   mapping(address => uint) public override gaugeBalance;
+  /// @dev Gauge => current user
   mapping(address => address) public override gaugeUser;
 
   // ************************************************
@@ -100,6 +103,7 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
 
   function lock(uint amount, bool isClaim) external override {
     uint _veId = veId;
+    _approveIfNeeds(CONE, amount, address(VE));
     if (_veId == 0) {
       veId = VE.createLock(amount, MAX_LOCK);
     } else {
@@ -107,7 +111,9 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
         VE.increaseAmount(_veId, amount);
       }
       if (isClaim) {
-        VE.increaseUnlockTime(_veId, MAX_LOCK);
+        if(VE.lockedEnd(_veId) - MAX_LOCK < (block.timestamp / 1 weeks * 1 weeks)) {
+          VE.increaseUnlockTime(_veId, MAX_LOCK);
+        }
         VE_DIST.claim(_veId);
       }
     }
@@ -147,17 +153,21 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
   function claim(address gauge, address[] memory gaugeTokens, address[] memory bribeTokens) external nonReentrant override {
     require(gaugeUser[gauge] == msg.sender, "Not user");
 
-    IGauge(gauge).getReward(msg.sender, gaugeTokens);
+    IGauge(gauge).getReward(address(this), gaugeTokens);
 
-    IBribe(IGauge(gauge).bribe()).getReward(veId, bribeTokens);
+    if (veId != 0) {
+      IBribe(IGauge(gauge).bribe()).getReward(veId, bribeTokens);
+    }
 
     for (uint i; i < gaugeTokens.length; i++) {
       uint balance = IERC20(gaugeTokens[i]).balanceOf(address(this));
       IERC20(gaugeTokens[i]).safeTransfer(msg.sender, balance);
     }
-    for (uint i; i < bribeTokens.length; i++) {
-      uint balance = IERC20(bribeTokens[i]).balanceOf(address(this));
-      IERC20(bribeTokens[i]).safeTransfer(msg.sender, balance);
+    if (veId != 0) {
+      for (uint i; i < bribeTokens.length; i++) {
+        uint balance = IERC20(bribeTokens[i]).balanceOf(address(this));
+        IERC20(bribeTokens[i]).safeTransfer(msg.sender, balance);
+      }
     }
   }
 

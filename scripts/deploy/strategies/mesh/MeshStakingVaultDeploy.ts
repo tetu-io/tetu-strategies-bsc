@@ -1,4 +1,4 @@
-// import {MaticAddresses} from "../../../addresses/MaticAddresses";
+// import {BscAddresses} from "../../../addresses/BscAddresses";
 // import {ethers} from "hardhat";
 // import {DeployerUtils} from "../../DeployerUtils";
 // import {
@@ -18,7 +18,7 @@
 //   // ********* config **************
 //   const vaultName = 'TETU_ST_MESH'
 //   const vaultSymbol = 'tetuMESH';
-//   const underlying = MaticAddresses.MESH_TOKEN;
+//   const underlying = BscAddresses.MESH_TOKEN;
 //   const strategyName = 'StrategyMeshStaking';
 //   const vaultRewardToken = core.psVault
 //   const rewardDuration = 60 * 60 * 24 * 3;

@@ -13,7 +13,7 @@ import {TokenUtils} from "./TokenUtils";
 import {BigNumber, ContractTransaction, utils} from "ethers";
 import axios from "axios";
 import {CoreContractsWrapper} from "./CoreContractsWrapper";
-import {MaticAddresses} from "../scripts/addresses/MaticAddresses";
+import {BscAddresses} from "../scripts/addresses/BscAddresses";
 import {MintHelperUtils} from "./MintHelperUtils";
 import {Misc} from "../scripts/utils/tools/Misc";
 import {ethers} from "hardhat";
@@ -94,7 +94,7 @@ export class VaultUtils {
 
     console.log("Add xTETU as reward to vault: ", amount.toString())
     const rtAdr = core.psVault.address;
-    const tetuTokenAddress = MaticAddresses.TETU_TOKEN;
+    const tetuTokenAddress = BscAddresses.TETU_TOKEN;
     if (core.rewardToken.address.toLowerCase() === tetuTokenAddress) {
       await TokenUtils.getToken(core.rewardToken.address, signer.address, utils.parseUnits(amount + ''));
     } else {
@@ -124,7 +124,7 @@ export class VaultUtils {
 
     const ppfs = +utils.formatUnits(await vault.getPricePerFullShare(), undDec);
     const undBal = +utils.formatUnits(await vault.underlyingBalanceWithInvestment(), undDec);
-    const psPpfs = +utils.formatUnits(await psVaultCtr.getPricePerFullShare());
+    const psPpfs = psVault === BscAddresses.ZERO_ADDRESS ? 0 : +utils.formatUnits(await psVaultCtr.getPricePerFullShare());
     const rtBal = +utils.formatUnits(await TokenUtils.balanceOf(rt, vault.address));
 
     const strategyPlatform = (await strategyCtr.platform());
@@ -143,7 +143,7 @@ export class VaultUtils {
 
     const ppfsAfter = +utils.formatUnits(await vault.getPricePerFullShare(), undDec);
     const undBalAfter = +utils.formatUnits(await vault.underlyingBalanceWithInvestment(), undDec);
-    const psPpfsAfter = +utils.formatUnits(await psVaultCtr.getPricePerFullShare());
+    const psPpfsAfter = psVault === BscAddresses.ZERO_ADDRESS ? 0 : +utils.formatUnits(await psVaultCtr.getPricePerFullShare());
     const rtBalAfter = +utils.formatUnits(await TokenUtils.balanceOf(rt, vault.address));
     const bbRatio = (await strategyCtr.buyBackRatio()).toNumber();
 
@@ -159,11 +159,13 @@ export class VaultUtils {
 
     if (positiveCheck) {
       if (bbRatio > 1000) {
-        expect(psPpfsAfter).is.greaterThan(psPpfs,
-          'PS didnt have any income, it means that rewards was not liquidated and properly sent to PS.' +
-          ' Check reward tokens list and liquidation paths');
-        if (psRatio !== 1) {
-          expect(rtBalAfter).is.greaterThan(rtBal, 'With ps ratio less than 1 we should send a part of buybacks to vaults as rewards.');
+        if (psVault !== BscAddresses.ZERO_ADDRESS) {
+          expect(psPpfsAfter).is.greaterThan(psPpfs,
+            'PS didnt have any income, it means that rewards was not liquidated and properly sent to PS.' +
+            ' Check reward tokens list and liquidation paths');
+          if (psRatio !== 1) {
+            expect(rtBalAfter).is.greaterThan(rtBal, 'With ps ratio less than 1 we should send a part of buybacks to vaults as rewards.');
+          }
         }
       }
       if (bbRatio !== 10000 && !ppfsDecreaseAllowed) {

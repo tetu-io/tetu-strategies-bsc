@@ -132,27 +132,31 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
     IController ctrl = IController(_controller());
     address forwarder = ctrl.feeRewardForwarder();
 
-    IMultiRewardsPool _gauge = IMultiRewardsPool(gauge);
-    IMultiRewardsPool _bribe = IMultiRewardsPool(IGauge(address(_gauge)).bribe());
-    uint256 gaugeRtsLength = _gauge.rewardTokensLength();
-    uint256 bribeRtsLength = _bribe.rewardTokensLength();
+    address[] memory rts;
 
-    uint rewardCount;
-    address[] memory gaugeRts = new address[](gaugeRtsLength);
-    address[] memory bribeRts = new address[](bribeRtsLength);
-    address[] memory rts = new address[](gaugeRtsLength + bribeRtsLength);
-    for (uint i; i < gaugeRtsLength; ++i) {
-      rts[rewardCount] = _gauge.rewardTokens(i);
-      gaugeRts[i] = rts[rewardCount];
-      rewardCount++;
-    }
-    for (uint i; i < bribeRtsLength; ++i) {
-      rts[rewardCount] = _bribe.rewardTokens(i);
-      bribeRts[i] = rts[rewardCount];
-      rewardCount++;
-    }
+    {// create array for reward tokens and claim
+      IMultiRewardsPool _gauge = IMultiRewardsPool(gauge);
+      IMultiRewardsPool _bribe = IMultiRewardsPool(IGauge(address(_gauge)).bribe());
+      uint256 gaugeRtsLength = _gauge.rewardTokensLength();
+      uint256 bribeRtsLength = _bribe.rewardTokensLength();
 
-    coneStacker.claim(address(_gauge), gaugeRts, bribeRts);
+      uint rewardCount;
+      address[] memory gaugeRts = new address[](gaugeRtsLength);
+      address[] memory bribeRts = new address[](bribeRtsLength);
+      rts = new address[](gaugeRtsLength + bribeRtsLength);
+      for (uint i; i < gaugeRtsLength; ++i) {
+        rts[rewardCount] = _gauge.rewardTokens(i);
+        gaugeRts[i] = rts[rewardCount];
+        rewardCount++;
+      }
+      for (uint i; i < bribeRtsLength; ++i) {
+        rts[rewardCount] = _bribe.rewardTokens(i);
+        bribeRts[i] = rts[rewardCount];
+        rewardCount++;
+      }
+
+      coneStacker.claim(address(_gauge), gaugeRts, bribeRts);
+    }
 
     address und = _underlying();
     uint bbRatio = _buyBackRatio();
@@ -196,7 +200,6 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
     }
 
     (address token0, address token1) = IPair(und).tokens();
-
     bool isStable = IPair(und).stable();
 
     uint amountFor0;
@@ -220,7 +223,7 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
       amount0 = amountFor0;
     }
 
-    if (rt != token0) {
+    if (rt != token1) {
       TETU_LIQUIDATOR.liquidate(rt, token1, amountFor1, PRICE_IMPACT_TOLERANCE);
       amount1 = IERC20(token1).balanceOf(address(this));
     } else {
@@ -232,7 +235,7 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
     CONE_ROUTER.addLiquidity(
       token0,
       token1,
-      IPair(und).stable(),
+      isStable,
       amount0,
       amount1,
       0,
@@ -258,8 +261,7 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
         TETU_LIQUIDATOR.liquidate(rt, CONE, amount, PRICE_IMPACT_TOLERANCE);
         toInvest = IERC20(CONE).balanceOf(address(this)) - balanceBefore;
       }
-
-      _approveIfNeeds(CONE, toInvest, address(coneStacker));
+      IERC20(CONE).safeTransfer(address(coneStacker), toInvest);
       coneStacker.lock(toInvest, false);
     }
   }
@@ -276,4 +278,7 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
       IERC20(token).safeApprove(spender, type(uint).max);
     }
   }
+
+  //slither-disable-next-line unused-state
+  uint256[47] private ______gap;
 }

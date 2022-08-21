@@ -1,4 +1,4 @@
-import {MaticAddresses} from "../../../addresses/MaticAddresses";
+import {BscAddresses} from "../../../addresses/BscAddresses";
 
 interface IAMBInfo {
   underlyingName: string;
@@ -13,44 +13,44 @@ interface IAMBInfo {
 const infos: IAMBInfo[] = [
   {
     underlyingName: 'AAVE',
-    underlying: MaticAddresses.AAVE_TOKEN,
-    camToken: MaticAddresses.camAAVE_TOKEN,
-    amToken: MaticAddresses.amAAVE_TOKEN,
-    stablecoin: MaticAddresses.camAAVEVault,
+    underlying: BscAddresses.AAVE_TOKEN,
+    camToken: BscAddresses.camAAVE_TOKEN,
+    amToken: BscAddresses.amAAVE_TOKEN,
+    stablecoin: BscAddresses.camAAVEVault,
     targetPercentage: '300',
   },
   {
     underlyingName: 'WMATIC',
-    underlying: MaticAddresses.WMATIC_TOKEN,
-    camToken: MaticAddresses.camWMATIC_TOKEN,
-    amToken: MaticAddresses.amWMATIC_TOKEN,
-    stablecoin: MaticAddresses.camWMATICVault,
+    underlying: BscAddresses.WMATIC_TOKEN,
+    camToken: BscAddresses.camWMATIC_TOKEN,
+    amToken: BscAddresses.amWMATIC_TOKEN,
+    stablecoin: BscAddresses.camWMATICVault,
     targetPercentage: '300',
   },
   // ------ We do not have DAI vaults
   // {
   //   underlyingName: 'DAI',
-  //   underlying: MaticAddresses.DAI_TOKEN,
-  //   camToken: MaticAddresses.camDAI_TOKEN,
-  //   amToken: MaticAddresses.amDAI_TOKEN,
-  //   stablecoin: MaticAddresses.camDAIVault,
+  //   underlying: BscAddresses.DAI_TOKEN,
+  //   camToken: BscAddresses.camDAI_TOKEN,
+  //   amToken: BscAddresses.amDAI_TOKEN,
+  //   stablecoin: BscAddresses.camDAIVault,
   //   targetPercentage: '250',
   // },
   {
     underlyingName: 'WBTC',
-    underlying: MaticAddresses.WBTC_TOKEN,
-    camToken: MaticAddresses.camWBTC_TOKEN,
-    amToken: MaticAddresses.amWBTC_TOKEN,
-    stablecoin: MaticAddresses.camWBTCVault,
+    underlying: BscAddresses.WBTC_TOKEN,
+    camToken: BscAddresses.camWBTC_TOKEN,
+    amToken: BscAddresses.amWBTC_TOKEN,
+    stablecoin: BscAddresses.camWBTCVault,
     targetPercentage: '300',
     collateralNumerator: '10000000000' // 10**10 for WBTC erc20Stablecoin-cam-wbtc.sol at mai-qidao
   },
   {
     underlyingName: 'WETH',
-    underlying: MaticAddresses.WETH_TOKEN,
-    camToken: MaticAddresses.camWETH_TOKEN,
-    amToken: MaticAddresses.amETH_TOKEN,
-    stablecoin: MaticAddresses.camWETHVault,
+    underlying: BscAddresses.WETH_TOKEN,
+    camToken: BscAddresses.camWETH_TOKEN,
+    amToken: BscAddresses.amETH_TOKEN,
+    stablecoin: BscAddresses.camWETHVault,
     targetPercentage: '300',
   },
 ]

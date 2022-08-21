@@ -1,4 +1,4 @@
-import {MaticAddresses} from "../../../addresses/MaticAddresses";
+import {BscAddresses} from "../../../addresses/BscAddresses";
 
 interface IMBInfo {
   underlyingName: string,
@@ -13,20 +13,20 @@ const infos: IMBInfo[] = [
     // same strategy can be used for all other MAI vaults
   {
     underlyingName: 'cxDOGE',
-    underlying: MaticAddresses.cxDOGE_TOKEN,
-    stablecoin: MaticAddresses.cxDOGE_MAI_VAULT,
+    underlying: BscAddresses.cxDOGE_TOKEN,
+    stablecoin: BscAddresses.cxDOGE_MAI_VAULT,
     targetPercentage: '300',
   },
   {
     underlyingName: 'cxADA',
-    underlying: MaticAddresses.cxADA_TOKEN,
-    stablecoin: MaticAddresses.cxADA_MAI_VAULT,
+    underlying: BscAddresses.cxADA_TOKEN,
+    stablecoin: BscAddresses.cxADA_MAI_VAULT,
     targetPercentage: '300',
   },
   {
     underlyingName: 'cxETH',
-    underlying: MaticAddresses.cxETH_TOKEN,
-    stablecoin: MaticAddresses.cxETH_MAI_VAULT,
+    underlying: BscAddresses.cxETH_TOKEN,
+    stablecoin: BscAddresses.cxETH_MAI_VAULT,
     targetPercentage: '300',
   },
 ]

@@ -20,6 +20,7 @@ import {SpecificStrategyTest} from "./SpecificStrategyTest";
 import {BigNumber} from "ethers";
 import {UniswapUtils} from "../UniswapUtils";
 import {TokenUtils} from "../TokenUtils";
+import {BscAddresses} from "../../scripts/addresses/BscAddresses";
 
 async function universalStrategyTest(
   name: string,
@@ -74,7 +75,7 @@ async function universalStrategyTest(
         await core.vaultController.changePpfsDecreasePermissions([vault.address], true);
       }
       const firstRt = (await vault.rewardTokens())[0];
-      if (firstRt.toLowerCase() === core.psVault.address.toLowerCase()) {
+      if (!!firstRt && firstRt.toLowerCase() !== BscAddresses.ZERO_ADDRESS && firstRt.toLowerCase() === core.psVault.address.toLowerCase()) {
         await VaultUtils.addRewardsXTetu(signer, vault, core, 1);
       }
 
