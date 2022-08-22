@@ -30,7 +30,7 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
   // ************************************************
 
   /// @dev Version of the contract
-  string public constant VERSION = "1.0.0";
+  string public constant VERSION = "1.0.1";
   string public constant NAME = "ConeStacker";
   address public constant CONE = 0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9;
   IVe public constant VE = IVe(0xd0C1378c177E961D96c06b0E8F6E7841476C81Ef);
@@ -100,6 +100,10 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
   // ************************************************
   //                USER ACTIONS
   // ************************************************
+
+  function merge(uint fromId) external {
+    VE.merge(fromId, veId);
+  }
 
   function lock(uint amount, bool isClaim) external override {
     uint _veId = veId;

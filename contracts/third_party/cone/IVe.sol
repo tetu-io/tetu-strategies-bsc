@@ -33,6 +33,8 @@ interface IVe {
 
   function isApprovedOrOwner(address, uint) external view returns (bool);
 
+  function merge(uint _from, uint _to) external;
+
   function createLockFor(uint, uint, address) external returns (uint);
 
   function createLock(uint _value, uint _lockDuration) external returns (uint);
