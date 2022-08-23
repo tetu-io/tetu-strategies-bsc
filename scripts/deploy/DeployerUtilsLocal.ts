@@ -573,6 +573,17 @@ export class DeployerUtilsLocal {
     await ethers.provider.send("evm_mine", []); // Just mines to the next block
   }
 
+  public static async findVaultUnderlyingInBookkeeper(signer: SignerWithAddress, underlying: string) {
+    const core = await DeployerUtilsLocal.getCoreAddressesWrapper(signer)
+    const vaults = await core.bookkeeper.vaults();
+    for (const vault of vaults) {
+      if (vault.toLowerCase() === underlying.toLowerCase()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // ****************** WAIT ******************
 
   public static async delay(ms: number) {

@@ -32,8 +32,11 @@ export class BscAddresses {
   public static CONE_FACTORY = "0x0EFc2D2D054383462F2cD72eA2526Ef7687E1016".toLowerCase();
   public static CONE_ROUTER = "0xbf1fc29668e5f5Eaa819948599c9Ac1B1E03E75F".toLowerCase();
 
-  public static CONE_CONE_BNB_PAIR = "0x672cd8201ceb518f9e42526ef7bcfe5263f41951".toLowerCase();
-  public static CONE_CONE_BNB_GAUGE = "0x09635bd2F4aA47afc7eB9d2F03c4fE4e747D4B42".toLowerCase();
+  public static CONE_V_CONE_BNB_PAIR = "0x672cd8201ceb518f9e42526ef7bcfe5263f41951".toLowerCase();
+  public static CONE_V_CONE_BNB_GAUGE = "0x09635bd2F4aA47afc7eB9d2F03c4fE4e747D4B42".toLowerCase();
+
+  public static CONE_S_USDT_USDC_PAIR = "0x68dda7c12f792e17c747a627d41153c103310d74".toLowerCase();
+  public static CONE_S_USDT_USDC_GAUGE = "0x32258f716720ea65d6ae11b0aaf1692cdefe6f9f".toLowerCase();
 
 
   public static getRouterByFactory(factory: string): string {

@@ -1,0 +1,54 @@
+{
+  "data": {
+    "pairs": [
+      {
+        "id": "0xec30da6361905b8f3e4a93513d937db992301276",
+        "symbol": "vAMM-WBNB/USD+",
+        "reserveUSD": "2865.647342478291377923897129714789",
+        "gauge": {
+          "id": "0xa766094e9bf0afc1bb5208ec9a81a782663d797a"
+        }
+      },
+      {
+        "id": "0x79c95201cdfb77ea5d2e8d515de9e3f72115e4e6",
+        "symbol": "vAMM-VALAS/WBNB",
+        "reserveUSD": "950.6556546934149664351640344013322",
+        "gauge": {
+          "id": "0x13cd86d4748ed7a8e652945aee12dac9167e60b2"
+        }
+      },
+      {
+        "id": "0x89b26af36fa8705a27934fced56d154bda01315a",
+        "symbol": "vAMM-ETH/USDC",
+        "reserveUSD": "735.5251901380633772601518821085532",
+        "gauge": {
+          "id": "0x57f6187950e1c4034b2a7a991d75977e54d92b21"
+        }
+      },
+      {
+        "id": "0x0f8c95890b7bdecfae7990bf32f22120111e0b44",
+        "symbol": "vAMM-TETU/USD+",
+        "reserveUSD": "628.4306096394996031661662896013938",
+        "gauge": {
+          "id": "0x965b78533a72d2a18fa31f3449887572e9a54a1e"
+        }
+      },
+      {
+        "id": "0x881b608ec7e15cd5bb4da9db6ae9c477b4f67731",
+        "symbol": "vAMM-WBNB/BUSD",
+        "reserveUSD": "440.4338769729152069066530959760818",
+        "gauge": {
+          "id": "0x97f4ce527122789b3544dc3ea85341b5f3ce1cf8"
+        }
+      },
+      {
+        "id": "0xa848415e241957aed0ed80864aafea5bc742c20e",
+        "symbol": "vAMM-WBNB/BIFI",
+        "reserveUSD": "5059.590748653296447558281793057823",
+        "gauge": {
+          "id": "0x9ad3910ba0b904f30d22ec25322585b52d881dd2"
+        }
+      }
+    ]
+  }
+}

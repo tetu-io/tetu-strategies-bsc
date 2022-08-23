@@ -137,6 +137,7 @@ export class VaultUtils {
         await IStrategy__factory.connect(subStrategy, vault.signer).doHardWork();
       }
     } else {
+      console.log('call hard work');
       await vault.doHardWork();
     }
     console.log('hard work called');

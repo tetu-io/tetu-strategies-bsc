@@ -23,8 +23,10 @@ export class TokenUtils {
 
   // use the most neutral place, some contracts (like swap pairs) can be used in tests and direct transfer ruin internal logic
   public static TOKEN_HOLDERS = new Map<string, string>([
-    [BscAddresses.CONE_CONE_BNB_PAIR, BscAddresses.CONE_CONE_BNB_GAUGE.toLowerCase()],
+    [BscAddresses.CONE_V_CONE_BNB_PAIR, BscAddresses.CONE_V_CONE_BNB_GAUGE.toLowerCase()],
+    [BscAddresses.CONE_S_USDT_USDC_PAIR, BscAddresses.CONE_S_USDT_USDC_GAUGE.toLowerCase()],
     [BscAddresses.USDC_TOKEN, '0x8894e0a0c962cb723c1976a4421c95949be2d4e3'.toLowerCase()], // binance hot wallet
+    [BscAddresses.USDT_TOKEN, '0x8894e0a0c962cb723c1976a4421c95949be2d4e3'.toLowerCase()], // binance hot wallet
     [BscAddresses.CONE_TOKEN, '0xd0c1378c177e961d96c06b0e8f6e7841476c81ef'.toLowerCase()], // ve
   ]);
 

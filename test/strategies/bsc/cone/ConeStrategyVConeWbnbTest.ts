@@ -16,10 +16,10 @@ import {BscAddresses} from "../../../../scripts/addresses/BscAddresses";
 const {expect} = chai;
 chai.use(chaiAsPromised);
 
-describe('cone strategy tests', async () => {
+describe('cone CONE_V_CONE_BNB_PAIR strategy tests', async () => {
   const strategyName = 'StrategyCone';
-  const underlying = BscAddresses.CONE_CONE_BNB_PAIR;
-  const gauge = BscAddresses.CONE_CONE_BNB_GAUGE;
+  const underlying = BscAddresses.CONE_V_CONE_BNB_PAIR;
+  const gauge = BscAddresses.CONE_V_CONE_BNB_GAUGE;
 
   const deployInfo: DeployInfo = new DeployInfo();
   before(async function () {
