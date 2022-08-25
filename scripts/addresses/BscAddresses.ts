@@ -22,6 +22,7 @@ export class BscAddresses {
   public static BUSD_TOKEN = "0xe9e7cea3dedca5984780bafc599bd69add087d56".toLowerCase();
   public static TETU_TOKEN = "0x1f681b1c4065057e07b95a1e5e504fb2c85f4625".toLowerCase();
   public static CONE_TOKEN = "0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9".toLowerCase();
+  public static USDPlus_TOKEN = "0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65".toLowerCase();
 
 
   // PCS

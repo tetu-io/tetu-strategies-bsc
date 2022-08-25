@@ -30,7 +30,7 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
   // ************************************************
 
   /// @dev Version of the contract
-  string public constant VERSION = "1.0.1";
+  string public constant VERSION = "1.0.2";
   string public constant NAME = "ConeStacker";
   address public constant CONE = 0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9;
   IVe public constant VE = IVe(0xd0C1378c177E961D96c06b0E8F6E7841476C81Ef);
@@ -115,7 +115,7 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
         VE.increaseAmount(_veId, amount);
       }
       if (isClaim) {
-        if (VE.lockedEnd(_veId) - MAX_LOCK < (block.timestamp / 1 weeks * 1 weeks)) {
+        if (VE.lockedEnd(_veId) - MAX_LOCK + 1 weeks < (block.timestamp / 1 weeks * 1 weeks)) {
           VE.increaseUnlockTime(_veId, MAX_LOCK);
         }
         VE_DIST.claim(_veId);

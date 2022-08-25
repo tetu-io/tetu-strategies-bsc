@@ -17,10 +17,10 @@ import {ConeConstants} from "../../../../scripts/deploy/strategies/cone/ConeCons
 const {expect} = chai;
 chai.use(chaiAsPromised);
 
-describe.skip('cone CONE_S_USDT_USDC_PAIR strategy tests', async () => {
+describe('cone tetu usdplus strategy tests', async () => {
   const strategyName = 'StrategyCone';
-  const underlying = BscAddresses.CONE_S_USDT_USDC_PAIR;
-  const gauge = BscAddresses.CONE_S_USDT_USDC_GAUGE;
+  const underlying = "0x0f8c95890b7bdecfae7990bf32f22120111e0b44";
+  const gauge = "0x965b78533a72d2a18fa31f3449887572e9a54a1e";
 
   const deployInfo: DeployInfo = new DeployInfo();
   before(async function () {
