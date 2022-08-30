@@ -30,18 +30,20 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
   string public constant override STRATEGY_NAME = "ConeStrategyBase";
   /// @notice Version of the contract
   /// @dev Should be incremented when contract changed
-  string public constant VERSION = "1.0.0";
+  string public constant VERSION = "1.0.1";
 
   uint private constant PRICE_IMPACT_TOLERANCE = 10_000;
   address private constant CONE = 0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9;
   IRouter private constant CONE_ROUTER = IRouter(0xbf1fc29668e5f5Eaa819948599c9Ac1B1E03E75F);
   ITetuLiquidator private constant TETU_LIQUIDATOR = ITetuLiquidator(0xcE9F7173420b41678320cd4BB93517382b6D48e8);
+  uint private constant _DUST = 10_000;
 
 
   // ------------------- VARIABLES ---------------------------------
   IConeStacker public coneStacker;
   address public gauge;
   uint public accumulatePOLRatio;
+  uint claimBribeCounter;
 
   /// @notice Initialize contract after setup it as proxy implementation
   function initializeStrategy(
@@ -142,10 +144,20 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
     address[] memory rts;
 
     {// create array for reward tokens and claim
+      uint _claimBribeCounter = claimBribeCounter;
+
       IMultiRewardsPool _gauge = IMultiRewardsPool(gauge);
       IMultiRewardsPool _bribe = IMultiRewardsPool(IGauge(address(_gauge)).bribe());
       uint256 gaugeRtsLength = _gauge.rewardTokensLength();
       uint256 bribeRtsLength = _bribe.rewardTokensLength();
+
+      // claim bribes only once per 30 calls
+      if (_claimBribeCounter > 30) {
+        claimBribeCounter = 0;
+      } else {
+        claimBribeCounter = _claimBribeCounter + 1;
+        bribeRtsLength = 0;
+      }
 
       uint rewardCount;
       address[] memory gaugeRts = new address[](gaugeRtsLength);
@@ -173,24 +185,24 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
     for (uint i = 0; i < rts.length; i++) {
       address rt = rts[i];
       uint amount = IERC20(rt).balanceOf(address(this));
-      if (amount != 0) {
+      if (amount > _DUST) {
 
         uint toBb = amount * bbRatio / _BUY_BACK_DENOMINATOR;
         uint toCompound = amount - toBb;
 
-        if (toBb != 0) {
+        if (toBb > _DUST) {
           uint toPol = toBb * accumulatePOLRatio / 100;
           uint toDistribute = toBb - toPol;
-          if (toPol != 0) {
+          if (toPol > _DUST) {
             _pol(toPol, rt);
           }
-          if (toDistribute != 0) {
+          if (toDistribute > _DUST) {
             _approveIfNeeds(rt, toDistribute, forwarder);
             targetTokenEarnedTotal += IFeeRewardForwarder(forwarder).distribute(toDistribute, rt, vault);
           }
         }
 
-        if (toCompound != 0) {
+        if (toCompound > _DUST) {
           _compound(toCompound, und, rt);
         }
       }
@@ -224,32 +236,34 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
     _approveIfNeeds(rt, toCompound, address(TETU_LIQUIDATOR));
 
     if (rt != token0) {
-      TETU_LIQUIDATOR.liquidate(rt, token0, amountFor0, PRICE_IMPACT_TOLERANCE);
+      _liquidate(rt, token0, amountFor0);
       amount0 = IERC20(token0).balanceOf(address(this));
     } else {
       amount0 = amountFor0;
     }
 
     if (rt != token1) {
-      TETU_LIQUIDATOR.liquidate(rt, token1, amountFor1, PRICE_IMPACT_TOLERANCE);
+      _liquidate(rt, token1, amountFor1);
       amount1 = IERC20(token1).balanceOf(address(this));
     } else {
       amount1 = amountFor1;
     }
 
-    _approveIfNeeds(token0, amount0, address(CONE_ROUTER));
-    _approveIfNeeds(token1, amount1, address(CONE_ROUTER));
-    CONE_ROUTER.addLiquidity(
-      token0,
-      token1,
-      isStable,
-      amount0,
-      amount1,
-      0,
-      0,
-      address(this),
-      block.timestamp
-    );
+    if (amount0 > _DUST && amount1 > _DUST) {
+      _approveIfNeeds(token0, amount0, address(CONE_ROUTER));
+      _approveIfNeeds(token1, amount1, address(CONE_ROUTER));
+      CONE_ROUTER.addLiquidity(
+        token0,
+        token1,
+        isStable,
+        amount0,
+        amount1,
+        0,
+        0,
+        address(this),
+        block.timestamp
+      );
+    }
   }
 
   function _normalizedReserves(address pair, address token0, address token1) internal view returns (uint, uint){
@@ -265,11 +279,31 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
       if (rt != CONE) {
         uint balanceBefore = IERC20(CONE).balanceOf(address(this));
         _approveIfNeeds(rt, amount, address(TETU_LIQUIDATOR));
-        TETU_LIQUIDATOR.liquidate(rt, CONE, amount, PRICE_IMPACT_TOLERANCE);
+        _liquidate(rt, CONE, amount);
         toInvest = IERC20(CONE).balanceOf(address(this)) - balanceBefore;
       }
-      IERC20(CONE).safeTransfer(address(coneStacker), toInvest);
-      coneStacker.lock(toInvest, false);
+      if (toInvest > _DUST) {
+        IERC20(CONE).safeTransfer(address(coneStacker), toInvest);
+        coneStacker.lock(toInvest, false);
+      }
+    }
+  }
+
+  function _liquidate(address tokenIn, address tokenOut, uint amount) internal {
+    (ITetuLiquidator.PoolData[] memory route, string memory errorMessage) =
+    TETU_LIQUIDATOR.buildRoute(tokenIn, tokenOut);
+
+    if (route.length == 0) {
+      revert (errorMessage);
+    }
+
+    uint amountOut;
+    try TETU_LIQUIDATOR.getPriceForRoute(route, amount) returns (uint out) {
+      amountOut = out;
+    } catch {}
+
+    if (amountOut > _DUST) {
+      TETU_LIQUIDATOR.liquidateWithRoute(route, amount, PRICE_IMPACT_TOLERANCE);
     }
   }
 
