@@ -8,7 +8,7 @@ export class BscAddresses {
   // https://github.com/sushiswap/default-token-list/blob/master/src/tokens/matic.json#L153
 
   public static ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-  public static GOV_ADDRESS = "0xbbbbb8C4364eC2ce52c59D2Ed3E56F307E529a94".toLowerCase();
+  public static GOV_ADDRESS = "0xf00fD5282538F1C81df9F8388023FFDB3565c0D4".toLowerCase();
   public static CONTROLLER_ADDRESS = "0xe926a29f531AC36A0D635a5494Fd8474b9a663aD".toLowerCase();
 
   // tokens

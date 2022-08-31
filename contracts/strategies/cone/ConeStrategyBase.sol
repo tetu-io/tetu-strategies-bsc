@@ -30,7 +30,7 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
   string public constant override STRATEGY_NAME = "ConeStrategyBase";
   /// @notice Version of the contract
   /// @dev Should be incremented when contract changed
-  string public constant VERSION = "1.0.1";
+  string public constant VERSION = "1.0.2";
 
   uint private constant PRICE_IMPACT_TOLERANCE = 10_000;
   address private constant CONE = 0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9;
@@ -321,5 +321,5 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
   }
 
   //slither-disable-next-line unused-state
-  uint256[47] private ______gap;
+  uint256[46] private ______gap;
 }
