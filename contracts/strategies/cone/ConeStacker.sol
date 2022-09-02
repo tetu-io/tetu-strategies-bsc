@@ -30,7 +30,7 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
   // ************************************************
 
   /// @dev Version of the contract
-  string public constant VERSION = "1.0.2";
+  string public constant VERSION = "1.0.3";
   string public constant NAME = "ConeStacker";
   address public constant CONE = 0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9;
   IVe public constant VE = IVe(0xd0C1378c177E961D96c06b0E8F6E7841476C81Ef);
@@ -167,12 +167,16 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
 
     for (uint i; i < gaugeTokens.length; i++) {
       uint balance = IERC20(gaugeTokens[i]).balanceOf(address(this));
-      IERC20(gaugeTokens[i]).safeTransfer(msg.sender, balance);
+      if (balance != 0) {
+        IERC20(gaugeTokens[i]).safeTransfer(msg.sender, balance);
+      }
     }
     if (veId != 0) {
       for (uint i; i < bribeTokens.length; i++) {
         uint balance = IERC20(bribeTokens[i]).balanceOf(address(this));
-        IERC20(bribeTokens[i]).safeTransfer(msg.sender, balance);
+        if (balance != 0) {
+          IERC20(bribeTokens[i]).safeTransfer(msg.sender, balance);
+        }
       }
     }
   }

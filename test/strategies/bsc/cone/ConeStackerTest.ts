@@ -50,6 +50,7 @@ describe('cone stacker tests', async () => {
 
     await TokenUtils.getToken(BscAddresses.CONE_TOKEN, signer.address, parseUnits('100'));
     ve = IVe__factory.connect('0xd0C1378c177E961D96c06b0E8F6E7841476C81Ef', signer)
+    await TokenUtils.approve(BscAddresses.CONE_TOKEN, signer, ve.address, parseUnits('100').toString());
     veId = (await ve.callStatic.createLock(parseUnits('1'), 60 * 60 * 24 * 30)).toNumber();
     await ve.createLock(parseUnits('1'), 60 * 60 * 24 * 30);
   });

@@ -17,3 +17,18 @@ main()
     console.error(error);
     process.exit(1);
   });
+
+
+/*
+
+{
+  pairs(first: 100, orderBy: reserveUSD, orderDirection: desc) {
+  id
+  symbol
+  reserveUSD
+  gauge {
+    id
+  }
+}
+}
+*/

@@ -17,7 +17,7 @@ import {ConeConstants} from "../../../../scripts/deploy/strategies/cone/ConeCons
 const {expect} = chai;
 chai.use(chaiAsPromised);
 
-describe('cone tetu usdplus strategy tests', async () => {
+describe.skip('cone tetu usdplus strategy tests', async () => {
   const strategyName = 'StrategyCone';
   const underlying = "0x0f8c95890b7bdecfae7990bf32f22120111e0b44";
   const gauge = "0x965b78533a72d2a18fa31f3449887572e9a54a1e";

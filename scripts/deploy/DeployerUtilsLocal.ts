@@ -577,7 +577,8 @@ export class DeployerUtilsLocal {
     const core = await DeployerUtilsLocal.getCoreAddressesWrapper(signer)
     const vaults = await core.bookkeeper.vaults();
     for (const vault of vaults) {
-      if (vault.toLowerCase() === underlying.toLowerCase()) {
+      const vaultUnd = await ISmartVault__factory.connect(vault, signer).underlying();
+      if (vaultUnd.toLowerCase() === underlying.toLowerCase()) {
         return true;
       }
     }
