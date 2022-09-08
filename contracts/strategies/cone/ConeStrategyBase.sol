@@ -30,7 +30,7 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
   string public constant override STRATEGY_NAME = "ConeStrategyBase";
   /// @notice Version of the contract
   /// @dev Should be incremented when contract changed
-  string public constant VERSION = "1.0.2";
+  string public constant VERSION = "1.0.3";
 
   uint private constant PRICE_IMPACT_TOLERANCE = 10_000;
   address private constant CONE = 0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9;
@@ -103,6 +103,24 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
 
   /// @dev Collect profit and do something useful with them
   function doHardWork() external override virtual hardWorkers onlyNotPausedInvesting {
+    _doHardWork(false);
+  }
+
+  function _doHardWork(bool silent) internal {
+    // always silent for vault actions
+    if (msg.sender == _vault()) {
+      silent = true;
+    }
+    if (silent) {
+      try this._doHardWorkInternal() {} catch {}
+    } else {
+      _doHardWorkInternal();
+    }
+  }
+
+  // public for calling in try catch
+  function _doHardWorkInternal() public hardWorkers onlyNotPausedInvesting {
+
     IConeStacker _coneStacker = coneStacker;
     // we can not claim rewards with zero balance in the stacker contract
     if (_coneStacker.userBalance(gauge, address(this)) != 0) {
@@ -124,6 +142,7 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
 
   /// @dev Withdraw underlying
   function withdrawAndClaimFromPool(uint underlyingAmount) internal override {
+    _doHardWork(true);
     if (underlyingAmount > 0) {
       coneStacker.withdrawFromGauge(_underlying(), gauge, underlyingAmount);
     }

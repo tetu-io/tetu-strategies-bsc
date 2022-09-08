@@ -138,7 +138,7 @@ export class VaultUtils {
       }
     } else {
       console.log('call hard work');
-      await vault.doHardWork();
+      await strategyCtr.doHardWork();
     }
     console.log('hard work called');
 

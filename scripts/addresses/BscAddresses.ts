@@ -26,6 +26,9 @@ export class BscAddresses {
   public static UNKWN_TOKEN = "0xD7FbBf5CB43b4A902A8c994D94e821f3149441c7".toLowerCase();
   public static VALAS_TOKEN = "0xB1EbdD56729940089Ecc3aD0BBEEB12b6842ea6F".toLowerCase();
   public static BIFI_TOKEN = "0xCa3F508B8e4Dd382eE878A314789373D80A5190A".toLowerCase();
+  public static TUSD_TOKEN = "0x14016e85a25aeb13065688cafb43044c2ef86784".toLowerCase();
+  public static MDBPlus_TOKEN = "0x9f8bb16f49393eea4331a39b69071759e54e16ea".toLowerCase();
+  public static QI_TOKEN = "0xddc3d26baa9d2d979f5e2e42515478bf18f354d5".toLowerCase();
 
 
   // PCS
