@@ -1,4 +1,5 @@
 import {
+  IBookkeeper__factory,
   IControllable__factory, IControllableExtended__factory,
   IController,
   IController__factory, IERC20__factory,
@@ -121,11 +122,14 @@ export class VaultUtils {
     const strategy = await vault.strategy();
     const strategyCtr = IStrategy__factory.connect(strategy, vault.signer);
     const ppfsDecreaseAllowed = await vault.ppfsDecreaseAllowed();
+    const bookkeeper = await controllerCtr.bookkeeper();
+    const bookkeeperCtr = IBookkeeper__factory.connect(bookkeeper, vault.signer)
 
     const ppfs = +utils.formatUnits(await vault.getPricePerFullShare(), undDec);
     const undBal = +utils.formatUnits(await vault.underlyingBalanceWithInvestment(), undDec);
     const psPpfs = psVault === BscAddresses.ZERO_ADDRESS ? 0 : +utils.formatUnits(await psVaultCtr.getPricePerFullShare());
     const rtBal = +utils.formatUnits(await TokenUtils.balanceOf(rt, vault.address));
+    const bkEarned = await bookkeeperCtr.targetTokenEarned(strategy)
 
     const strategyPlatform = (await strategyCtr.platform());
     if (strategyPlatform === 24) {
@@ -147,6 +151,7 @@ export class VaultUtils {
     const psPpfsAfter = psVault === BscAddresses.ZERO_ADDRESS ? 0 : +utils.formatUnits(await psVaultCtr.getPricePerFullShare());
     const rtBalAfter = +utils.formatUnits(await TokenUtils.balanceOf(rt, vault.address));
     const bbRatio = (await strategyCtr.buyBackRatio()).toNumber();
+    const bkEarnedAfter = await bookkeeperCtr.targetTokenEarned(strategy)
 
     console.log('-------- HARDWORK --------');
     console.log('- BB ratio:', bbRatio);
@@ -177,6 +182,9 @@ export class VaultUtils {
         }
       }
     }
+
+    expect(bkEarnedAfter.toNumber()).greaterThan(bkEarned.toNumber());
+
     Misc.printDuration('doHardWorkAndCheck completed', start);
   }
 

@@ -227,9 +227,8 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
       }
     }
 
-    if (targetTokenEarnedTotal > 0) {
-      IBookkeeper(ctrl.bookkeeper()).registerStrategyEarned(targetTokenEarnedTotal);
-    }
+    // send at least 1 for trigger all statistic actions
+    IBookkeeper(ctrl.bookkeeper()).registerStrategyEarned(Math.max(targetTokenEarnedTotal, 1));
   }
 
   function _compound(uint toCompound, address und, address rt) internal {
