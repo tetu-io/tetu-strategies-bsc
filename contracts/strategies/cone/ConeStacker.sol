@@ -135,6 +135,8 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
     require(_gaugeUser == address(0) || _gaugeUser == msg.sender, "Only 1 user allowed");
     if (_gaugeUser == address(0)) {
       gaugeUser[gauge] = msg.sender;
+      // refresh balance for the new user, need to fix a bug from v1.0.3
+      gaugeBalance[gauge] = 0;
     }
 
     _approveIfNeeds(pool, amount, gauge);
