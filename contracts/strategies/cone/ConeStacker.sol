@@ -30,7 +30,7 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
   // ************************************************
 
   /// @dev Version of the contract
-  string public constant VERSION = "1.0.3";
+  string public constant VERSION = "1.0.4";
   string public constant NAME = "ConeStacker";
   address public constant CONE = 0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9;
   IVe public constant VE = IVe(0xd0C1378c177E961D96c06b0E8F6E7841476C81Ef);
@@ -150,6 +150,7 @@ contract ConeStacker is ControllableV2, ReentrancyGuard, IConeStacker {
     IGauge(gauge).withdraw(amount);
     if (balance == amount) {
       delete gaugeUser[gauge];
+      delete gaugeBalance[gauge];
     } else {
       gaugeBalance[gauge] = balance - amount;
     }
