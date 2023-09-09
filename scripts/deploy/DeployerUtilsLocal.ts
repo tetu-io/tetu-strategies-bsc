@@ -54,6 +54,7 @@ const argv = require('yargs/yargs')()
     },
     splitterLogic: {
       type: "string",
+      default: "0x5d47c341f5F7786A9caC8B56ba84E673E2FdfE02"
     },
   }).argv;
 
@@ -190,6 +191,35 @@ export class DeployerUtilsLocal {
       depositFee
     ), true, wait);
     return [vaultLogic, vault, strategy];
+  }
+
+  public static async deployVaultWithSplitter(
+    vaultName: string,
+    signer: SignerWithAddress,
+    controller: string,
+    underlying: string,
+    vaultRt: string,
+    rewardDuration = 60 * 60 * 24 * 7
+  ) {
+    return DeployerUtilsLocal.deployVaultAndStrategy(
+      vaultName,
+      async (vaultAddress: string) => {
+        console.log('Start deploy splitter')
+        const splitter = await DeployerUtilsLocal.deployStrategySplitter(signer);
+        console.log('Splitter init')
+        await RunHelper.runAndWait(() => splitter.initialize(
+          controller,
+          underlying,
+          vaultAddress,
+        ));
+        return IStrategy__factory.connect(splitter.address, signer);
+      },
+      controller,
+      vaultRt,
+      signer,
+      rewardDuration,
+      0
+    );
   }
 
   public static async deployVaultAndStrategyProxy<T>(
