@@ -1,6 +1,6 @@
-import {ethers, web3} from "hardhat";
+import {ethers} from "hardhat";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {Contract, ContractFactory, utils} from "ethers";
+import { ContractFactory} from "ethers";
 import {CoreContractsWrapper} from "../../test/CoreContractsWrapper";
 import {Addresses} from "../../addresses";
 import {CoreAddresses} from "../models/CoreAddresses";
@@ -14,13 +14,11 @@ import logSettings from "../../log_settings";
 import {Logger} from "tslog";
 import {BscAddresses} from "../addresses/BscAddresses";
 import {readFileSync} from "fs";
-import {Libraries} from "hardhat-deploy/dist/types";
 import {
   IAnnouncer__factory,
   IBookkeeper__factory,
   IController,
   IController__factory,
-  IFeeRewardForwarder__factory,
   IFundKeeper__factory,
   IMintHelper__factory,
   IPriceCalculator__factory,
@@ -35,6 +33,7 @@ import {
   TetuProxyControlled, TetuProxyControlled__factory,
 } from "../../typechain";
 import {deployContract} from "./DeployContract";
+import {IFeeRewardForwarder__factory} from "../../typechain/factories/contracts/interface";
 
 // tslint:disable-next-line:no-var-requires
 const hre = require("hardhat");
