@@ -67,10 +67,6 @@ abstract contract UniversalLendStrategy is ProxyStrategyBase {
     }
   }
 
-  function setProfitSharingDisabled(bool value) external restricted {
-    isProfitSharingDisabled = value;
-  }
-
   /// ******************************************************
   ///              Do hard work
   /// ******************************************************
@@ -179,8 +175,7 @@ abstract contract UniversalLendStrategy is ProxyStrategyBase {
   // 2. Profit from reward tokens
   // We swapping all reward tokens to underlying and add to the pool (supply). Then we calculate the profit based on the
   // difference between the local balance and the current pool balance.
-  // Strategy withdraws portion of this profig and send to the _PERF_FEE_TREASURY and updates local balance.
-
+  // Strategy withdraws portion of this profit and sends to the _PERF_FEE_TREASURY and updates local balance.
   function _doHardWork(bool silent, bool push) internal returns (uint) {
     uint _lastHw = lastHw;
 
