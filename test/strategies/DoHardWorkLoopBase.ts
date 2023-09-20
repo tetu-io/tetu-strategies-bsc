@@ -1,7 +1,6 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {CoreContractsWrapper} from "../CoreContractsWrapper";
 import {
-  IERC20__factory,
   ISmartVault,
   IStrategy,
   IStrategySplitter__factory
@@ -16,7 +15,6 @@ import {expect} from "chai";
 import {PriceCalculatorUtils} from "../PriceCalculatorUtils";
 import {formatUnits} from "ethers/lib/utils";
 import {BscAddresses} from "../../scripts/addresses/BscAddresses";
-import {string} from "hardhat/internal/core/params/argumentTypes";
 
 
 export class DoHardWorkLoopBase {
@@ -36,10 +34,8 @@ export class DoHardWorkLoopBase {
   userDeposited = BigNumber.from(0);
   signerDeposited = BigNumber.from(0);
   userWithdrew = BigNumber.from(0);
-  userRTBal = BigNumber.from(0);
-  vaultRTBal = BigNumber.from(0);
-  veDistBal = BigNumber.from(0);
   feeCollectorRewardTokensBalances: BigNumber[] = [];
+  strategyRewardTokens: string[] = [];
   loops = 0;
   loopStartTs = 0;
   startTs = 0;
@@ -52,6 +48,8 @@ export class DoHardWorkLoopBase {
   totalToClaimInTetuN = 0;
   toClaimCheckTolerance = 0.3;
   allowLittleDustInStrategyAfterFullExit = BigNumber.from(0)
+  shouldEarnUnderlying = true;
+  shouldEarnRt = false;
 
   constructor(
     signer: SignerWithAddress,
@@ -92,11 +90,13 @@ export class DoHardWorkLoopBase {
 
   protected async init() {
     this.undDec = await TokenUtils.decimals(this.underlying);
-    const strategyRewardTokens: string[] = [];
-    strategyRewardTokens.push(... await this.strategy.rewardTokens());
-    strategyRewardTokens.push(this.underlying);
-
-    for (const rt of strategyRewardTokens) {
+    if(this.shouldEarnRt) {
+      this.strategyRewardTokens.push(...await this.strategy.rewardTokens());
+    }
+    if(this.shouldEarnUnderlying){
+      this.strategyRewardTokens.push(this.underlying);
+    }
+    for (const rt of this.strategyRewardTokens) {
       const rtBal = await TokenUtils.balanceOf(rt, BscAddresses.DEFAULT_PERF_FEE_RECEIVER);
       this.feeCollectorRewardTokensBalances.push(rtBal);
     }
@@ -290,16 +290,13 @@ export class DoHardWorkLoopBase {
     const roiThisCycle = ((earnedUsdcThisCycle / tvlUsdc) / loopTime) * 100 * Misc.SECONDS_OF_YEAR;
 
     const rtEarnedByFeeCollector: string[] = []
-
-    const strategyRewardTokens: string[] = [];
-    strategyRewardTokens.push(... await this.strategy.rewardTokens());
-    strategyRewardTokens.push(this.underlying);
-
-    for (let i = 0; i < strategyRewardTokens.length; i++) {
-      const rt = strategyRewardTokens[i];
+    for (let ii = 0; ii < this.strategyRewardTokens.length; ii++) {
+      const rt = this.strategyRewardTokens[ii];
       const rtBal = await TokenUtils.balanceOf(rt, BscAddresses.DEFAULT_PERF_FEE_RECEIVER);
-      const rtEarned = rtBal.sub(this.feeCollectorRewardTokensBalances[i]);
-      // expect(rtEarned).is.gt(0, 'Protocol should earn RTs');
+      const rtEarned = rtBal.sub(this.feeCollectorRewardTokensBalances[ii]);
+
+      expect(rtEarned).is.gt(0, 'Protocol should earn RTs');
+      rtEarnedByFeeCollector.push(rt.toString());
       rtEarnedByFeeCollector.push(rtEarned.toString());
     }
 
@@ -375,7 +372,6 @@ export class DoHardWorkLoopBase {
     // exit for signer
 
     // need to call hard work for sell a little excess rewards
-    // todo: clarity if it is ok to move in above strategy.withdrawAllToVault
     await this.strategy.doHardWork({gasLimit: 10_000_000});
 
     await this.vault.connect(this.signer).exit({gasLimit: 10_000_000});

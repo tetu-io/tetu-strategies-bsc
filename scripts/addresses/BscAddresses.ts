@@ -11,7 +11,7 @@ export class BscAddresses {
   public static GOV_ADDRESS = "0xf00fD5282538F1C81df9F8388023FFDB3565c0D4".toLowerCase();
   public static CONTROLLER_ADDRESS = "0xe926a29f531AC36A0D635a5494Fd8474b9a663aD".toLowerCase();
   public static LIQUIDATOR_ADDRESS = "0xcE9F7173420b41678320cd4BB93517382b6D48e8".toLowerCase();
-  public static DEFAULT_PERF_FEE_RECEIVER = "0x9Cc199D4353b5FB3e6C8EEBC99f5139e0d8eA06b".toLowerCase();
+  public static DEFAULT_PERF_FEE_RECEIVER = "0x5256B9276974B12501e3caE24f877357ceBddDD2".toLowerCase();
   public static UNIV2_SWAPPER = "0xD37fC11dEDfaa0fc3449b2BF5eDe864Ef6AaE1E3".toLowerCase();
   public static UNIV3_SWAPPER = "0x1476Ab41a45b81324dAd2A1E0B3a3281458ba502".toLowerCase();
   public static PANCAKEV3_SWAPPER = "0x5413E7AFCADCB63A30Dad567f46dd146Cc427801".toLowerCase();
@@ -35,6 +35,7 @@ export class BscAddresses {
   public static MDBPlus_TOKEN = "0x9f8bb16f49393eea4331a39b69071759e54e16ea".toLowerCase();
   public static QI_TOKEN = "0xddc3d26baa9d2d979f5e2e42515478bf18f354d5".toLowerCase();
   public static XVS_TOKEN = "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63".toLowerCase();
+  public static RDNT_TOKEN = "0xf7DE7E8A6bd59ED41a4b5fe50278b3B7f31384dF".toLowerCase();
   public static AAVE_TOKEN = "0xfb6115445Bff7b52FeB98650C87f44907E58f802".toLowerCase();
   public static BTCB = "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c".toLowerCase();
 
