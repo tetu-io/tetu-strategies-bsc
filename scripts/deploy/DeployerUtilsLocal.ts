@@ -1,6 +1,6 @@
 import {ethers} from "hardhat";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import { ContractFactory} from "ethers";
+import {ContractFactory} from "ethers";
 import {CoreContractsWrapper} from "../../test/CoreContractsWrapper";
 import {Addresses} from "../../addresses";
 import {CoreAddresses} from "../models/CoreAddresses";
@@ -25,15 +25,17 @@ import {
   IRewardToken__factory,
   ISmartVault,
   ISmartVault__factory,
-  IStrategy, IStrategy__factory,
+  IStrategy,
+  IStrategy__factory,
   IStrategySplitter,
   IStrategySplitter__factory,
   IVaultController,
   IVaultController__factory,
-  TetuProxyControlled, TetuProxyControlled__factory,
+  TetuProxyControlled,
+  TetuProxyControlled__factory,
 } from "../../typechain";
 import {deployContract} from "./DeployContract";
-import {IFeeRewardForwarder__factory} from "../../typechain/factories/contracts/interface";
+import {IFeeRewardForwarder__factory} from "../../typechain/factories/contracts/interfaces";
 
 // tslint:disable-next-line:no-var-requires
 const hre = require("hardhat");
@@ -50,6 +52,7 @@ const argv = require('yargs/yargs')()
     },
     vaultLogic: {
       type: "string",
+      default: '0x3F3AcfD6A0765ef8854Ae81bC7Ef499Af0863090'
     },
     splitterLogic: {
       type: "string",
@@ -69,7 +72,7 @@ export class DeployerUtilsLocal {
 
   public static getVaultLogic(signer: SignerWithAddress) {
     console.log('argv.vaultLogic', argv.vaultLogic);
-    let logic = '0x7f52D49C8A9779E93613Fb14cF07be1500ab9C3A';
+    let logic = '';
     if (!!argv.vaultLogic) {
       logic = argv.vaultLogic;
     }

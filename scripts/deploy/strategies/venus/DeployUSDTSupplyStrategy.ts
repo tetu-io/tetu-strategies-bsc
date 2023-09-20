@@ -9,7 +9,7 @@ async function main() {
   const core = await DeployerUtilsLocal.getCoreAddresses();
   const underlying = BscAddresses.USDT_TOKEN;
 
-  const splitterAddress = "" // <----
+  const splitterAddress = BscAddresses.xUSDT_SPLITTER
   const logic = await DeployerUtilsLocal.deployContract(signer, "StrategyVenusSupply");
   const stackerProxy = await DeployerUtilsLocal.deployContract(signer, "TetuProxyControlled", logic.address);
   await RunHelper.runAndWait(() => StrategyVenusSupply__factory.connect(stackerProxy.address, signer).initialize(

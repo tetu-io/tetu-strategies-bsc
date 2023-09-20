@@ -4,9 +4,6 @@ import {BscAddresses} from "../../addresses/BscAddresses";
 import {TokenUtils} from "../../../test/TokenUtils";
 
 
-// tslint:disable-next-line:no-var-requires
-const hre = require("hardhat");
-
 export async function main() {
   const signer = (await ethers.getSigners())[0];
   const core = await DeployerUtilsLocal.getCoreAddresses();
@@ -19,7 +16,7 @@ export async function main() {
   }
 
   await DeployerUtilsLocal.deployVaultWithSplitter(
-    "SPLITTER_" + undSymbol,
+    undSymbol,
     signer,
     core.controller,
     underlying,

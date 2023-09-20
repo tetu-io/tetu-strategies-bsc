@@ -12,7 +12,7 @@
 pragma solidity 0.8.4;
 
 import "@tetu_io/tetu-contracts/contracts/base/strategies/ProxyStrategyBase.sol";
-import "../interface/ITetuLiquidator.sol";
+import "../interfaces/ITetuLiquidator.sol";
 
 /// @title Universal base strategy for simple lending
 /// @author Aleh
@@ -25,12 +25,15 @@ abstract contract UniversalLendStrategy is ProxyStrategyBase {
   uint private constant _DUST = 10_000;
   address private constant _PERF_FEE_TREASURY = 0x9Cc199D4353b5FB3e6C8EEBC99f5139e0d8eA06b;
   ITetuLiquidator public constant TETU_LIQUIDATOR = ITetuLiquidator(0xcE9F7173420b41678320cd4BB93517382b6D48e8);
-
   uint private constant PRICE_IMPACT_TOLERANCE = 10_000;
 
   uint internal localBalance;
   uint public lastHw;
-  bool public isProfitSharingDisabled;
+
+  ////////////////////// GAP ///////////////////////////
+  //slither-disable-next-line unused-state
+  uint256[48] private ______gap;
+  //////////////////////////////////////////////////////
 
   /// ******************************************************
   ///                    Initialization
@@ -51,7 +54,6 @@ abstract contract UniversalLendStrategy is ProxyStrategyBase {
       __rewardTokens,
       buybackRatio_
     );
-    isProfitSharingDisabled = true;
   }
 
   // *******************************************************
@@ -170,7 +172,7 @@ abstract contract UniversalLendStrategy is ProxyStrategyBase {
     }
   }
 
-  //@dev Algorithm: we using local balance to calculate profit. There are 2 sources of profit:
+  /// @dev Algorithm: we using local balance to calculate profit. There are 2 sources of profit:
   // 1. Profit from supplied underlying tokens
   // 2. Profit from reward tokens
   // We swapping all reward tokens to underlying and add to the pool (supply). Then we calculate the profit based on the
@@ -238,7 +240,4 @@ abstract contract UniversalLendStrategy is ProxyStrategyBase {
       return amount * _buyBackRatio() / _BUY_BACK_DENOMINATOR;
     }
   }
-
-  //slither-disable-next-line unused-state
-  uint256[47] private ______gap;
 }

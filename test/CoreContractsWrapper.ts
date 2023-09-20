@@ -9,7 +9,7 @@ import {
   IStrategy,
   IVaultController,
 } from "../typechain";
-import {IFeeRewardForwarder} from "../typechain/contracts/interface";
+import {IFeeRewardForwarder} from "../typechain/contracts/interfaces";
 
 export class CoreContractsWrapper {
   public controller: IController;

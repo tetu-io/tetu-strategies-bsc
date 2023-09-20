@@ -33,7 +33,13 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
   string public constant override STRATEGY_NAME = "VenusSupplyStrategyBase";
   IUnitroller public constant UNITROLLER = IUnitroller(0xfD36E2c2a6789Db23113685031d7F16329158384);
   address internal constant XVS_TOKEN = 0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63;
+
   IVToken public vToken;
+
+  ////////////////////// GAP ///////////////////////////
+  //slither-disable-next-line unused-state
+  uint256[49] private ______gap;
+  //////////////////////////////////////////////////////
 
   /// ******************************************************
   ///                    Initialization
@@ -89,7 +95,6 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
   ///              Internal logic implementation
   /// ******************************************************
 
-
   /// @dev Refresh rates and return actual deposited balance in underlying tokens
   function _getActualPoolBalance() internal view override returns (uint) {
     return _rewardPoolBalance();
@@ -127,7 +132,4 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
   function _preHardWorkHook() internal override {
     vToken.accrueInterest();
   }
-
-  //slither-disable-next-line unused-state
-  uint256[48] private ______gap;
 }

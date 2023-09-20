@@ -19,7 +19,7 @@ export async function main() {
   }
 
   await DeployerUtilsLocal.deployVaultWithSplitter(
-    "SPLITTER_" + undSymbol,
+    undSymbol,
     signer,
     core.controller,
     underlying,

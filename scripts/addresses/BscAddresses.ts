@@ -38,6 +38,19 @@ export class BscAddresses {
   public static AAVE_TOKEN = "0xfb6115445Bff7b52FeB98650C87f44907E58f802".toLowerCase();
   public static BTCB = "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c".toLowerCase();
 
+  // tetu
+
+  public static xUSDC = "0xD6037B81D91b038f29cFa8DA0501e026B3671adC".toLowerCase();
+  public static xUSDC_SPLITTER = "0x639bB0d667498BD3e99B0da18bf0890Fb3B1E4A9".toLowerCase();
+  public static USDC_VENUS_STRATEGY = "0x88cf0a73aDF6A6b9873cb4C6332B9a5e66728d32".toLowerCase();
+
+  public static xDAI = "0xD0c46b7D28af9fD9727aD30eF0b5F21e8455b267".toLowerCase();
+  public static xDAI_SPLITTER = "0x573827deA1Db650fD2a9047Df54a0d2f0A2db7ed".toLowerCase();
+  public static DAI_VENUS_STRATEGY = "0xD65669ac69D04B2DE964e4b86bBdC85f7A49A846".toLowerCase();
+
+  public static xUSDT = "0x4F765306760C490A60803fBfC87a2156740E7f8d".toLowerCase();
+  public static xUSDT_SPLITTER = "0xa6b5F2E4fCd629B656666628fEe4B40B37055D98".toLowerCase();
+  public static USDT_VENUS_STRATEGY = "0xAa2c0Ce4e2058f9602451bB5A038675522Ff3E1A".toLowerCase();
 
   // PCS
   public static PCS_FACTORY = "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73".toLowerCase();
