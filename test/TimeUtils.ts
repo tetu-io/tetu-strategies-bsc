@@ -1,4 +1,4 @@
-import {ethers} from "hardhat";
+import {ethers, network} from "hardhat";
 import {DeployerUtilsLocal} from "../scripts/deploy/DeployerUtilsLocal";
 import {Misc} from "../scripts/utils/tools/Misc";
 import {Multicall__factory} from "../typechain";

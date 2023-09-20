@@ -1,6 +1,6 @@
-import {ethers, web3} from "hardhat";
+import {ethers} from "hardhat";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {Contract, ContractFactory, utils} from "ethers";
+import { ContractFactory} from "ethers";
 import {CoreContractsWrapper} from "../../test/CoreContractsWrapper";
 import {Addresses} from "../../addresses";
 import {CoreAddresses} from "../models/CoreAddresses";
@@ -14,13 +14,11 @@ import logSettings from "../../log_settings";
 import {Logger} from "tslog";
 import {BscAddresses} from "../addresses/BscAddresses";
 import {readFileSync} from "fs";
-import {Libraries} from "hardhat-deploy/dist/types";
 import {
   IAnnouncer__factory,
   IBookkeeper__factory,
   IController,
   IController__factory,
-  IFeeRewardForwarder__factory,
   IFundKeeper__factory,
   IMintHelper__factory,
   IPriceCalculator__factory,
@@ -35,6 +33,7 @@ import {
   TetuProxyControlled, TetuProxyControlled__factory,
 } from "../../typechain";
 import {deployContract} from "./DeployContract";
+import {IFeeRewardForwarder__factory} from "../../typechain/factories/contracts/interface";
 
 // tslint:disable-next-line:no-var-requires
 const hre = require("hardhat");
@@ -54,6 +53,7 @@ const argv = require('yargs/yargs')()
     },
     splitterLogic: {
       type: "string",
+      default: "0x5d47c341f5F7786A9caC8B56ba84E673E2FdfE02"
     },
   }).argv;
 
@@ -190,6 +190,35 @@ export class DeployerUtilsLocal {
       depositFee
     ), true, wait);
     return [vaultLogic, vault, strategy];
+  }
+
+  public static async deployVaultWithSplitter(
+    vaultName: string,
+    signer: SignerWithAddress,
+    controller: string,
+    underlying: string,
+    vaultRt: string,
+    rewardDuration = 60 * 60 * 24 * 7
+  ) {
+    return DeployerUtilsLocal.deployVaultAndStrategy(
+      vaultName,
+      async (vaultAddress: string) => {
+        console.log('Start deploy splitter')
+        const splitter = await DeployerUtilsLocal.deployStrategySplitter(signer);
+        console.log('Splitter init')
+        await RunHelper.runAndWait(() => splitter.initialize(
+          controller,
+          underlying,
+          vaultAddress,
+        ));
+        return IStrategy__factory.connect(splitter.address, signer);
+      },
+      controller,
+      vaultRt,
+      signer,
+      rewardDuration,
+      0
+    );
   }
 
   public static async deployVaultAndStrategyProxy<T>(

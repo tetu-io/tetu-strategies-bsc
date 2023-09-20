@@ -29,6 +29,9 @@ export class TokenUtils {
     [BscAddresses.USDC_TOKEN, '0x8894e0a0c962cb723c1976a4421c95949be2d4e3'.toLowerCase()], // binance hot wallet
     [BscAddresses.USDT_TOKEN, '0x8894e0a0c962cb723c1976a4421c95949be2d4e3'.toLowerCase()], // binance hot wallet
     [BscAddresses.CONE_TOKEN, '0xd0c1378c177e961d96c06b0e8f6e7841476c81ef'.toLowerCase()], // ve
+    [BscAddresses.BTCB, '0x5a52E96BAcdaBb82fd05763E25335261B270Efcb'.toLowerCase()], // binance hot wallet
+    [BscAddresses.WETH_TOKEN, '0x5a52E96BAcdaBb82fd05763E25335261B270Efcb'.toLowerCase()], // binance hot wallet
+    [BscAddresses.DAI_TOKEN, '0xF977814e90dA44bFA03b6295A0616a897441aceC'.toLowerCase()], // binance hot wallet
   ]);
 
   public static async balanceOf(tokenAddress: string, account: string): Promise<BigNumber> {

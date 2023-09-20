@@ -328,7 +328,7 @@ abstract contract ConeStrategyBase is ProxyStrategyBase {
   /// @dev Platform name for statistical purposes
   /// @return Platform enum index
   function platform() external override pure returns (Platform) {
-    return Platform.SLOT_41;
+    return Platform.CONE;
   }
 
   function _approveIfNeeds(address token, uint amount, address spender) internal {
