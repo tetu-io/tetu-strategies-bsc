@@ -23,7 +23,7 @@ abstract contract UniversalLendStrategy is ProxyStrategyBase {
   ///                Constants and variables
   /// ******************************************************
   uint private constant _DUST = 10_000;
-  address private constant _PERF_FEE_TREASURY = 0x9Cc199D4353b5FB3e6C8EEBC99f5139e0d8eA06b;
+  address private constant _PERF_FEE_TREASURY = 0x5256B9276974B12501e3caE24f877357ceBddDD2;
   ITetuLiquidator public constant TETU_LIQUIDATOR = ITetuLiquidator(0xcE9F7173420b41678320cd4BB93517382b6D48e8);
   uint private constant PRICE_IMPACT_TOLERANCE = 10_000;
 
