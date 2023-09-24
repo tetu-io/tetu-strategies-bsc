@@ -38,6 +38,8 @@ export class BscAddresses {
   public static RDNT_TOKEN = "0xf7DE7E8A6bd59ED41a4b5fe50278b3B7f31384dF".toLowerCase();
   public static AAVE_TOKEN = "0xfb6115445Bff7b52FeB98650C87f44907E58f802".toLowerCase();
   public static BTCB = "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c".toLowerCase();
+  public static WOM_TOKEN = "0xAD6742A35fB341A9Cc6ad674738Dd8da98b94Fb1".toLowerCase();
+  public static WMX_TOKEN = "0xa75d9ca2a0a1D547409D82e1B06618EC284A2CeD".toLowerCase();
 
   // tetu
 
@@ -76,11 +78,21 @@ export class BscAddresses {
   public static vETH_TOKEN = "0xf508fCD89b8bd15579dc79A6827cB4686A3592c8".toLowerCase();
   public static vDAI_TOKEN = "0x334b3eCB4DCa3593BCCC3c7EBD1A1C1d1780FBF1".toLowerCase();
 
+  // WOMBAT
+  public static LP_USDT = "0x4F95fE57BEA74b7F642cF9c097311959B9b988F7".toLowerCase();
+  public static LP_USDC = "0xb43ee2863370a56d3b7743edcd8407259100b8e2".toLowerCase();
+  public static LP_DAI = "0x9d0a463d5dcb82008e86bf506eb048708a15dd84".toLowerCase();
+
+  public static wmxLP_USDT_VAULT = "0x1964FfE993d1DA4cA0c717C9eA16A7846b4f13aB".toLowerCase();
+  public static wmxLP_USDC_VAULT = "0x6155E7d1c509F63109c6fC330bB5DD295034d540".toLowerCase();
+  public static wmxLP_DAI_VAULT = "0xD50A7dD04Fdfe4A33b54220337D28B78bF5e9CCf".toLowerCase();
+
 
   public static XVS_WBNB_PANCAKESWAP_POOL = "0x7EB5D86FD78f3852a3e0e064f2842d45a3dB6EA2".toLowerCase();
   public static BTCB_WETH_PANCAKESWAP_POOL = "0xD4dCA84E1808da3354924cD243c66828cf775470".toLowerCase();
   public static DAI_USDT_BITSWAP_POOL = "0xe0caab61EE7A12d03B268E1f6A56537aC1b61D13".toLowerCase();
-
+  public static WOM_BUSD_PANCAKESWAP_POOL = "0xe68D05418A8d7969D9CA6761ad46F449629d928c".toLowerCase();
+  public static WMX_BUSD_PANCAKESWAP_POOL = "0xe86eaAD81C32ffbb88B7ec9B325C8f75C8c9f1Ab".toLowerCase();
 
   public static getRouterByFactory(factory: string): string {
     switch (factory.toLowerCase()) {

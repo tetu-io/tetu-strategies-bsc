@@ -28,7 +28,7 @@ export class DoHardWorkLoopBase {
   public readonly strategy: IStrategy;
   public readonly balanceTolerance: number;
   public readonly finalBalanceTolerance: number;
-  public vaultRt: string;
+  vaultRt = BscAddresses.ZERO_ADDRESS;
   vaultForUser: ISmartVault;
   undDec = 0;
   userDeposited = BigNumber.from(0);
@@ -50,6 +50,7 @@ export class DoHardWorkLoopBase {
   allowLittleDustInStrategyAfterFullExit = BigNumber.from(0)
   shouldEarnUnderlying = true;
   shouldEarnRt = false;
+  allowDifferenceInExpectedOutAndActual = BigNumber.from(0);
 
   constructor(
     signer: SignerWithAddress,
@@ -205,7 +206,11 @@ export class DoHardWorkLoopBase {
       const balAfter = await TokenUtils.balanceOf(this.underlying, this.user.address);
       console.log('Withdrew expected', formatUnits(expectedOutput, this.undDec))
       console.log('Withdrew actual', formatUnits(balAfter.sub(balBefore), this.undDec))
-      if (check) expect(expectedOutput.sub(balAfter.sub(balBefore)).toNumber()).below(10, 'withdrew lower than expected');
+      console.log("expected output", expectedOutput.toString())
+      console.log("actual output", balAfter.sub(balBefore).toString())
+      const diffPercents = expectedOutput.mul(BigNumber.from(10).pow(18)).div(balAfter).sub(BigNumber.from(10).pow(18))
+
+      if (check) expect(diffPercents).lte(BigNumber.from(this.allowDifferenceInExpectedOutAndActual), 'withdrew lower than expected');
 
       await this.userCheckBalance(this.userDeposited);
       this.userWithdrew = this.userDeposited;
@@ -223,7 +228,8 @@ export class DoHardWorkLoopBase {
       const balAfter = await TokenUtils.balanceOf(this.underlying, this.user.address);
       console.log('Withdrew expected', formatUnits(expectedOutput, this.undDec))
       console.log('Withdrew actual', formatUnits(balAfter.sub(balBefore), this.undDec))
-      if (check) expect(expectedOutput.sub(balAfter.sub(balBefore)).toNumber()).below(10, 'withdrew lower than expected');
+      const diffPercents = expectedOutput.mul(BigNumber.from(10).pow(18)).div(balAfter).sub(BigNumber.from(10).pow(18))
+      if (check) expect(diffPercents).lte(BigNumber.from(this.allowDifferenceInExpectedOutAndActual), 'withdrew lower than expected');
 
       await this.userCheckBalance(this.userWithdrew.add(amount));
       const userUndBalAfter = await TokenUtils.balanceOf(this.underlying, this.user.address);
@@ -302,8 +308,6 @@ export class DoHardWorkLoopBase {
 
     console.log('++++++++++++++++ ROI ' + i + ' ++++++++++++++++++++++++++')
     console.log('Loop time', (loopTime / 60 / 60).toFixed(1), 'hours');
-    console.log('TETU earned total', stratEarnedTotalN);
-    console.log('TETU earned for this loop', stratEarnedN);
     console.log('ROI total', roi);
     console.log('ROI current', roiThisCycle);
     console.log('FeeCollector earned RTs', rtEarnedByFeeCollector);

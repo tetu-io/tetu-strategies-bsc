@@ -179,7 +179,6 @@ describe('Venus supply tests', async () => {
         _balanceTolerance,
         finalBalanceTolerance,
       );
-      hw.vaultRt = BscAddresses.ZERO_ADDRESS
       // we may have some rewards in a form of XVS
       hw.allowLittleDustInStrategyAfterFullExit = BigNumber.from(230000000)
       return hw;

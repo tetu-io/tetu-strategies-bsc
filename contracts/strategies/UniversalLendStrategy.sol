@@ -89,7 +89,7 @@ abstract contract UniversalLendStrategy is ProxyStrategyBase {
   function _getActualPoolBalance() internal virtual returns (uint);
 
   /// @dev Perform only withdraw action, without changing local balance
-  function _withdrawFromPoolWithoutChangeLocalBalance(uint amount, uint poolBalance) internal virtual returns (bool withdrewAll);
+  function _withdrawFromPoolWithoutChangeLocalBalance(uint amount, uint poolBalance) internal virtual returns (bool withdrewAll, uint withdrawnAmount);
 
   /// @dev Withdraw all and set localBalance to zero
   function _withdrawAllFromPool() internal virtual;
@@ -118,11 +118,11 @@ abstract contract UniversalLendStrategy is ProxyStrategyBase {
   /// @dev Withdraw underlying from the pool
   function withdrawAndClaimFromPool(uint256 amount_) internal override {
     uint poolBalance = _doHardWork(true, false);
-    bool withdrewAll = _withdrawFromPoolWithoutChangeLocalBalance(amount_, poolBalance);
+    (bool withdrewAll, uint withdrawn) = _withdrawFromPoolWithoutChangeLocalBalance(amount_, poolBalance);
     if (withdrewAll) {
       localBalance = 0;
     } else {
-      localBalance > amount_ ? localBalance -= amount_ : localBalance = 0;
+      localBalance > amount_ ? localBalance -= withdrawn : localBalance = 0;
     }
   }
 
@@ -198,10 +198,7 @@ abstract contract UniversalLendStrategy is ProxyStrategyBase {
       require(_localBalance < _DUST || profit < poolBalance / 20, 'Too huge profit');
 
       uint toBuybacks = _calcToBuyback(profit, _localBalance);
-      uint remaining = profit - toBuybacks;
-      if (remaining != 0) {
-        localBalance += remaining;
-      }
+
       if (toBuybacks > _DUST) {
         // if no users, withdraw all and send to controller for remove dust from this contract
         if (toBuybacks == poolBalance) {
@@ -209,16 +206,21 @@ abstract contract UniversalLendStrategy is ProxyStrategyBase {
           localBalance = 0;
           IERC20(u).safeTransfer(address(c), IERC20(u).balanceOf(address(this)));
         } else {
-          bool withdrewAll = _withdrawFromPoolWithoutChangeLocalBalance(toBuybacks, poolBalance);
+          (bool withdrewAll, uint withdrawnAmount) = _withdrawFromPoolWithoutChangeLocalBalance(toBuybacks, poolBalance);
           if (withdrewAll) {
             localBalance = 0;
           }
-          IERC20(u).safeTransfer(_PERF_FEE_TREASURY, toBuybacks);
+          IERC20(u).safeTransfer(_PERF_FEE_TREASURY, withdrawnAmount);
+          uint remaining = profit - withdrawnAmount; // need to use real withdrawn amount instead of toBuybacks
+          if (remaining != 0) {
+            localBalance += remaining;
+          }
         }
       }
+
     }
     IBookkeeper(c.bookkeeper()).registerStrategyEarned(0);
-    return _getActualPoolBalance();
+    return poolBalance;
   }
 
   /// ******************************************************
