@@ -220,7 +220,7 @@ abstract contract UniversalLendStrategy is ProxyStrategyBase {
 
     }
     IBookkeeper(c.bookkeeper()).registerStrategyEarned(0);
-    return poolBalance;
+    return _getActualPoolBalance();
   }
 
   /// ******************************************************
