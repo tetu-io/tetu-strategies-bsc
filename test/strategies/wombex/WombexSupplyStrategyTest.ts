@@ -69,7 +69,7 @@ const configureLiquidator = async (signer: SignerWithAddress, deployInfo: Deploy
 }
 describe('WombexStrategy supply tests', async () => {
   const underlyingInfos = [
-     // [BscAddresses.USDT_TOKEN, BscAddresses.LP_USDT, BscAddresses.wmxLP_USDT_VAULT],
+     [BscAddresses.USDT_TOKEN, BscAddresses.LP_USDT, BscAddresses.wmxLP_USDT_VAULT],
      [BscAddresses.USDC_TOKEN, BscAddresses.LP_USDC, BscAddresses.wmxLP_USDC_VAULT],
      // [BscAddresses.DAI_TOKEN, BscAddresses.LP_DAI, BscAddresses.wmxLP_DAI_VAULT],
   ]
@@ -102,14 +102,14 @@ describe('WombexStrategy supply tests', async () => {
     // only for strategies where we expect PPFS fluctuations
     const ppfsDecreaseAllowed = false;
     // only for strategies where we expect PPFS fluctuations
-    const balanceTolerance = 1_000_000 // todo: think if we can avoid this
+    const balanceTolerance = 0
     const finalBalanceTolerance = 0;
     const deposit = 100_000;
     // at least 3
     const loops = 3;
-    const buyBackRatio = 5000;
+    const buyBackRatio = 500;
     // number of blocks or timestamp value
-    const loopValue = 86400;
+    const loopValue = 60 * 60; // 1 hour
     // use 'true' if farmable platform values depends on blocks, instead you can use timestamp
     const advanceBlocks = true;
     const specificTests: SpecificStrategyTest[] = [
@@ -166,7 +166,6 @@ describe('WombexStrategy supply tests', async () => {
         _balanceTolerance,
         finalBalanceTolerance,
       );
-      hw.allowDifferenceInExpectedOutAndActual = BigNumber.from(5000000000000); // 0.000005% (18 decimals)
       return hw;
     };
 

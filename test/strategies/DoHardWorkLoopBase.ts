@@ -313,6 +313,10 @@ export class DoHardWorkLoopBase {
     console.log('FeeCollector earned RTs', rtEarnedByFeeCollector);
     console.log('+++++++++++++++++++++++++++++++++++++++++++++++')
     Misc.printDuration('fLoopPrintROIAndSaveEarned completed', start);
+
+    for (let ii = 0; ii < this.strategyRewardTokens.length; ii++) {
+      this.feeCollectorRewardTokensBalances[ii] = BigNumber.from(0);
+    }
   }
 
   protected async afterBlockAdvance() {

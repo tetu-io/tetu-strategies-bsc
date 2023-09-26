@@ -17,6 +17,7 @@ import "../../third_party/wombex/IPoolDepositor.sol";
 import "../../third_party/wombex/IAsset.sol";
 import "../../third_party/wombex/IWmxClaimZap.sol";
 import "../../third_party/wombex/IBaseRewardPool4626.sol";
+import "../../third_party/wombex/IPool.sol";
 
 /// @title Contract for Wombex simple supply strategy simplified
 /// @author Aleh
@@ -36,7 +37,6 @@ abstract contract WombexStrategyBase is UniversalLendStrategy {
   string public constant override STRATEGY_NAME = "WombexStrategyBase";
 
   IPoolDepositor public constant POOL_DEPOSITOR = IPoolDepositor(0xc2Ee2ab275BC3F38cA30E902211640D8bB58C4d1);
-  WmxClaimZap public constant WMX_CLAIM_ZAP = WmxClaimZap(0x9Cb2A01a7E64992dcfd5aC6b0fcffb8eEdF9f5b1);
   address public constant WOM_TOKEN = 0xAD6742A35fB341A9Cc6ad674738Dd8da98b94Fb1;
   address public constant WMX_TOKEN = 0xa75d9ca2a0a1D547409D82e1B06618EC284A2CeD;
 
@@ -119,14 +119,21 @@ abstract contract WombexStrategyBase is UniversalLendStrategy {
   /// @dev Perform only withdraw action, without changing local balance
   function _withdrawFromPoolWithoutChangeLocalBalance(uint amount, uint poolBalance) internal override returns (bool withdrewAll, uint withdrawnAmount) {
     uint minAmountOut = amount * (PRICE_IMPACT_PRECISION - PRICE_IMPACT) / PRICE_IMPACT_PRECISION;
-    (uint lpAmount,) = POOL_DEPOSITOR.getDepositAmountOut(address(lpToken), amount);
+
+    (uint lpAmount, uint reward) = POOL_DEPOSITOR.getDepositAmountOut(address(lpToken), amount);
+    lpAmount = lpAmount + reward;
+
+    uint lpAmountTotal = IBaseRewardPool4626(wmxLP).balanceOf(address(this));
+
+    lpAmount = Math.min(lpAmountTotal, lpAmount);
+
     uint underlyingBalanceBefore = IERC20(_underlying()).balanceOf(address(this));
     _approveIfNeeds(wmxLP, lpAmount, address(POOL_DEPOSITOR));
     if (amount < poolBalance) {
-      POOL_DEPOSITOR.withdrawFromOtherAsset(address(lpToken), _underlying(), lpAmount, minAmountOut, block.timestamp + 1, address(this));
+      POOL_DEPOSITOR.withdraw(address(lpToken), lpAmount, minAmountOut, block.timestamp + 1, address(this));
       withdrewAll = false;
     } else {
-      POOL_DEPOSITOR.withdrawFromOtherAsset(address(lpToken), _underlying(), lpAmount, minAmountOut, block.timestamp + 1, address(this));
+      POOL_DEPOSITOR.withdraw(address(lpToken), lpAmount, minAmountOut, block.timestamp + 1, address(this));
       withdrewAll = true;
     }
     uint underlyingBalanceAfter = IERC20(_underlying()).balanceOf(address(this));

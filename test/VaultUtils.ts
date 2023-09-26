@@ -22,9 +22,7 @@ import {BscAddresses} from "../scripts/addresses/BscAddresses";
 export const XTETU_NO_INCREASE = new Set<string>([
   'VenusSupplyStrategyBase'
 ])
-export const VAULT_SHARE_NO_INCREASE = new Set<string>([
-  'WombexStrategyBase',
-])
+export const VAULT_SHARE_NO_INCREASE = new Set<string>([])
 
 export class VaultUtils {
 
