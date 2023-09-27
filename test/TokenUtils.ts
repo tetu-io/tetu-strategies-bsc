@@ -30,6 +30,7 @@ export class TokenUtils {
     [BscAddresses.BTCB, '0x5a52E96BAcdaBb82fd05763E25335261B270Efcb'.toLowerCase()], // binance hot wallet
     [BscAddresses.WETH_TOKEN, '0x5a52E96BAcdaBb82fd05763E25335261B270Efcb'.toLowerCase()], // binance hot wallet
     [BscAddresses.DAI_TOKEN, '0xF977814e90dA44bFA03b6295A0616a897441aceC'.toLowerCase()], // binance hot wallet
+    [BscAddresses.WMX_TOKEN, '0xA4bD32058474787337758B795d182435CbA2510E'.toLowerCase()],
   ]);
 
   public static async balanceOf(tokenAddress: string, account: string): Promise<BigNumber> {

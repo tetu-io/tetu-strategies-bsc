@@ -400,6 +400,8 @@ export class DoHardWorkLoopBase {
 
     const userDepositedN = +utils.formatUnits(this.userDeposited, this.undDec);
     // some pools have auto compounding so user balance can increase
+    const underlyingInStrategy = await TokenUtils.balanceOf(this.underlying, this.strategy.address);
+    console.log('>>>> underlying in strategy', underlyingInStrategy.toString());
     const userUnderlyingBalanceAfter = await TokenUtils.balanceOf(this.underlying, this.user.address);
     const userUnderlyingBalanceAfterN = +utils.formatUnits(userUnderlyingBalanceAfter, this.undDec);
     const userBalanceExpected = userDepositedN - (userDepositedN * this.finalBalanceTolerance);

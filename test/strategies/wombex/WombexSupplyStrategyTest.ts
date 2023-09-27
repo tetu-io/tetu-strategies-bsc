@@ -12,14 +12,19 @@ import {
   ISmartVault,
   WombexSupplyStrategy__factory,
   ITetuLiquidator__factory,
-  ITetuLiquidatorController__factory, ISwapper__factory, IUniswapV2Pair__factory,
+  ITetuLiquidatorController__factory,
+  ISwapper__factory,
+  IUniswapV2Pair__factory,
+  IBaseRewardPool4626__factory,
+  IERC20__factory,
 } from "../../../typechain";
 import {ToolsContractsWrapper} from "../../ToolsContractsWrapper";
 import {universalStrategyTest} from "../UniversalStrategyTest";
 import {DoHardWorkLoopBase} from "../DoHardWorkLoopBase";
 import {BscAddresses} from "../../../scripts/addresses/BscAddresses";
-import {BigNumber} from "ethers";
+import {utils} from "ethers";
 import {EmergencyWithdrawFromPoolTest} from "./EmergencyWithdrawFromPoolTest";
+import {TokenUtils} from "../../TokenUtils";
 
 dotEnvConfig();
 // tslint:disable-next-line:no-var-requires
@@ -76,12 +81,30 @@ const configureLiquidator = async (signer: SignerWithAddress, deployInfo: Deploy
     const univ2Swapper = ISwapper__factory.connect(BscAddresses.UNIV2_SWAPPER, signer);
     const btcbWbnbPancakeswapPool = IUniswapV2Pair__factory.connect(BscAddresses.DAI_USDT_BITSWAP_POOL, signer);
     await univ2Swapper.connect(gov).setFee(await btcbWbnbPancakeswapPool.factory(), 250);
-
   }
 }
+
+const UNDERLYING_TO_LP = new Map<string, string>([
+    [BscAddresses.USDT_TOKEN, BscAddresses.wmxLP_USDT_VAULT],
+    [BscAddresses.USDC_TOKEN, BscAddresses.wmxLP_USDC_VAULT],
+    [BscAddresses.DAI_TOKEN, BscAddresses.wmxLP_DAI_VAULT],
+]);
+
+
+const addRewards = async (signer: SignerWithAddress, underlying: string) => {
+    const lpVaultAddress = UNDERLYING_TO_LP.get(underlying);
+    if(lpVaultAddress) {
+      const lpVault = IBaseRewardPool4626__factory.connect(lpVaultAddress, signer);
+      const operator = await DeployerUtilsLocal.impersonate(await lpVault.operator())
+      await TokenUtils.getToken(BscAddresses.WMX_TOKEN, operator.address, utils.parseUnits("100000", 18))
+      await IERC20__factory.connect(BscAddresses.WMX_TOKEN, operator).approve(lpVault.address, utils.parseUnits("100000", 18))
+      await lpVault.connect(operator).queueNewRewards(BscAddresses.WMX_TOKEN, utils.parseUnits("100000", 18));
+    }
+}
+
 describe('WombexStrategy supply tests', async () => {
   const underlyingInfos = [
-     // [BscAddresses.USDT_TOKEN, BscAddresses.LP_USDT, BscAddresses.wmxLP_USDT_VAULT],
+     [BscAddresses.USDT_TOKEN, BscAddresses.LP_USDT, BscAddresses.wmxLP_USDT_VAULT],
      [BscAddresses.USDC_TOKEN, BscAddresses.LP_USDC, BscAddresses.wmxLP_USDC_VAULT],
      [BscAddresses.DAI_TOKEN, BscAddresses.LP_DAI, BscAddresses.wmxLP_DAI_VAULT],
   ]
@@ -152,7 +175,7 @@ describe('WombexStrategy supply tests', async () => {
             vaultAddress,
             buyBackRatio
           );
-          await core.controller.setRewardDistribution([strategy.address], true);
+          await addRewards(signer, underlying);
           return strategy;
         },
         underlying,
