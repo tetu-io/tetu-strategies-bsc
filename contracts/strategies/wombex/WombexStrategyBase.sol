@@ -121,13 +121,13 @@ abstract contract WombexStrategyBase is UniversalLendStrategy {
     uint minAmountOut = amount * (PRICE_IMPACT_PRECISION - PRICE_IMPACT) / PRICE_IMPACT_PRECISION;
 
     (uint lpAmount, uint reward) = POOL_DEPOSITOR.getDepositAmountOut(address(lpToken), amount);
-    lpAmount = lpAmount + reward;
+    lpAmount += reward;
 
     uint lpAmountTotal = IBaseRewardPool4626(wmxLP).balanceOf(address(this));
 
     lpAmount = Math.min(lpAmountTotal, lpAmount);
-
-    uint underlyingBalanceBefore = IERC20(_underlying()).balanceOf(address(this));
+    address u = _underlying();
+    uint underlyingBalanceBefore = IERC20(u).balanceOf(address(this));
     _approveIfNeeds(wmxLP, lpAmount, address(POOL_DEPOSITOR));
     if (amount < poolBalance) {
       POOL_DEPOSITOR.withdraw(address(lpToken), lpAmount, minAmountOut, block.timestamp + 1, address(this));
@@ -136,7 +136,7 @@ abstract contract WombexStrategyBase is UniversalLendStrategy {
       POOL_DEPOSITOR.withdraw(address(lpToken), lpAmount, minAmountOut, block.timestamp + 1, address(this));
       withdrewAll = true;
     }
-    uint underlyingBalanceAfter = IERC20(_underlying()).balanceOf(address(this));
+    uint underlyingBalanceAfter = IERC20(u).balanceOf(address(this));
     withdrawnAmount = underlyingBalanceAfter - underlyingBalanceBefore;
   }
 

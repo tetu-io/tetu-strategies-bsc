@@ -110,7 +110,8 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
 
   /// @dev Perform only withdraw action, without changing local balance
   function _withdrawFromPoolWithoutChangeLocalBalance(uint amount, uint poolBalance) internal override returns (bool withdrewAll, uint withdrawnAmount) {
-    uint underlyingBalanceBefore = IERC20(_underlying()).balanceOf(address(this));
+    address u = _underlying();
+    uint underlyingBalanceBefore = IERC20(u).balanceOf(address(this));
     if (amount < poolBalance) {
       vToken.redeemUnderlying(amount);
       withdrewAll = false;
@@ -118,7 +119,7 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
       vToken.redeemUnderlying(amount);
       withdrewAll = true;
     }
-    uint underlyingBalanceAfter = IERC20(_underlying()).balanceOf(address(this));
+    uint underlyingBalanceAfter = IERC20(u).balanceOf(address(this));
     withdrawnAmount = underlyingBalanceAfter - underlyingBalanceBefore;
   }
 

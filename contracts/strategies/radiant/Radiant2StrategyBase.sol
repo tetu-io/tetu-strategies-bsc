@@ -104,15 +104,16 @@ abstract contract Radiant2StrategyBase is UniversalLendStrategy {
 
   /// @dev Perform only withdraw action, without changing local balance
   function _withdrawFromPoolWithoutChangeLocalBalance(uint amount, uint poolBalance) internal override returns (bool withdrewAll, uint withdrawnAmount) {
-    uint underlyingBalanceBefore = IERC20(_underlying()).balanceOf(address(this));
+    address u = _underlying();
+    uint underlyingBalanceBefore = IERC20(u).balanceOf(address(this));
     if (amount < poolBalance) {
       withdrewAll = false;
-      AAVE_LENDING_POOL.withdraw(_underlying(), amount, address(this));
+      AAVE_LENDING_POOL.withdraw(u, amount, address(this));
     } else {
       withdrewAll = true;
-      AAVE_LENDING_POOL.withdraw(_underlying(), type(uint).max, address(this));
+      AAVE_LENDING_POOL.withdraw(u, type(uint).max, address(this));
     }
-    uint underlyingBalanceAfter = IERC20(_underlying()).balanceOf(address(this));
+    uint underlyingBalanceAfter = IERC20(u).balanceOf(address(this));
     withdrawnAmount = underlyingBalanceAfter - underlyingBalanceBefore;
   }
 
