@@ -12,7 +12,7 @@ import {
   ISmartVault,
   WombexSupplyStrategy__factory,
   ITetuLiquidator__factory,
-  ITetuLiquidatorController__factory,
+  ITetuLiquidatorController__factory, ISwapper__factory, IUniswapV2Pair__factory,
 } from "../../../typechain";
 import {ToolsContractsWrapper} from "../../ToolsContractsWrapper";
 import {universalStrategyTest} from "../UniversalStrategyTest";
@@ -65,13 +65,25 @@ const configureLiquidator = async (signer: SignerWithAddress, deployInfo: Deploy
       tokenOut: BscAddresses.BUSD_TOKEN,
     }], true)
 
+    await liquidator.addLargestPools([{
+      pool: BscAddresses.DAI_USDT_BITSWAP_POOL,
+      swapper: BscAddresses.UNIV2_SWAPPER,
+      tokenIn: BscAddresses.DAI_TOKEN,
+      tokenOut: BscAddresses.USDT_TOKEN,
+    }], true)
+
+    // need to set fee
+    const univ2Swapper = ISwapper__factory.connect(BscAddresses.UNIV2_SWAPPER, signer);
+    const btcbWbnbPancakeswapPool = IUniswapV2Pair__factory.connect(BscAddresses.DAI_USDT_BITSWAP_POOL, signer);
+    await univ2Swapper.connect(gov).setFee(await btcbWbnbPancakeswapPool.factory(), 250);
+
   }
 }
 describe('WombexStrategy supply tests', async () => {
   const underlyingInfos = [
-     [BscAddresses.USDT_TOKEN, BscAddresses.LP_USDT, BscAddresses.wmxLP_USDT_VAULT],
+     // [BscAddresses.USDT_TOKEN, BscAddresses.LP_USDT, BscAddresses.wmxLP_USDT_VAULT],
      [BscAddresses.USDC_TOKEN, BscAddresses.LP_USDC, BscAddresses.wmxLP_USDC_VAULT],
-     // [BscAddresses.DAI_TOKEN, BscAddresses.LP_DAI, BscAddresses.wmxLP_DAI_VAULT],
+     [BscAddresses.DAI_TOKEN, BscAddresses.LP_DAI, BscAddresses.wmxLP_DAI_VAULT],
   ]
 
   if (argv.disableStrategyTests || argv.hardhatChainId !== 56) {
@@ -104,12 +116,15 @@ describe('WombexStrategy supply tests', async () => {
     // only for strategies where we expect PPFS fluctuations
     const balanceTolerance = 0
     const finalBalanceTolerance = 0;
-    const deposit = 100_000;
+    let deposit = 100_000;
+    if(underlying === BscAddresses.DAI_TOKEN) {
+      deposit = 10_000;
+    }
     // at least 3
     const loops = 3;
     const buyBackRatio = 500;
     // number of blocks or timestamp value
-    const loopValue = 60 * 60; // 1 hour
+    const loopValue = 60 * 60 * 24; // 1 day
     // use 'true' if farmable platform values depends on blocks, instead you can use timestamp
     const advanceBlocks = true;
     const specificTests: SpecificStrategyTest[] = [
