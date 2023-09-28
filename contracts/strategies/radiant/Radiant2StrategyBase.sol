@@ -30,7 +30,7 @@ abstract contract Radiant2StrategyBase is UniversalLendStrategy {
   /// @dev Should be incremented when contract changed
   string public constant VERSION = "1.0.1";
 
-  IStrategy.Platform public constant override platform = IStrategy.Platform.SLOT_48; //todo change
+  IStrategy.Platform public constant override platform = IStrategy.Platform.RADIANT2;
   /// @notice Strategy type for statistical purposes
   string public constant override STRATEGY_NAME = "Radiant2StrategyBase";
 

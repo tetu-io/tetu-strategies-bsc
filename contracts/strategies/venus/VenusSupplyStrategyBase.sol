@@ -28,7 +28,7 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
   /// @dev Should be incremented when contract changed
   string public constant VERSION = "1.0.2";
 
-  IStrategy.Platform public constant override platform = IStrategy.Platform.SLOT_47; // todo change
+  IStrategy.Platform public constant override platform = IStrategy.Platform.VENUS;
   /// @notice Strategy type for statistical purposes
   string public constant override STRATEGY_NAME = "VenusSupplyStrategyBase";
   IUnitroller public constant UNITROLLER = IUnitroller(0xfD36E2c2a6789Db23113685031d7F16329158384);
