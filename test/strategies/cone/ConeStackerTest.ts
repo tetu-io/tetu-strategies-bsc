@@ -1,29 +1,15 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import {StrategyTestUtils} from "../../StrategyTestUtils";
-import {DeployInfo} from "../../DeployInfo";
-import {SpecificStrategyTest} from "../../SpecificStrategyTest";
+
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {CoreContractsWrapper} from "../../../CoreContractsWrapper";
-import {DeployerUtilsLocal} from "../../../../scripts/deploy/DeployerUtilsLocal";
+import {DeployerUtilsLocal} from "../../../scripts/deploy/DeployerUtilsLocal";
 import {
   ConeStacker,
-  ConeStacker__factory, IERC721, IERC721__factory, IPriceCalculator,
-  ISmartVault,
-  ISmartVault__factory,
-  IStrategy, IVe, IVe__factory,
-  StrategyCone
-} from "../../../../typechain";
-import {ToolsContractsWrapper} from "../../../ToolsContractsWrapper";
-import {universalStrategyTest} from "../../UniversalStrategyTest";
-import {DoHardWorkLoopBase} from "../../DoHardWorkLoopBase";
-import {BscAddresses} from "../../../../scripts/addresses/BscAddresses";
-import {TimeUtils} from "../../../TimeUtils";
-import {ethers} from "hardhat";
-import {VaultUtils} from "../../../VaultUtils";
-import {TokenUtils} from "../../../TokenUtils";
-import {UniswapUtils} from "../../../UniswapUtils";
-import {Misc} from "../../../../scripts/utils/tools/Misc";
+  ConeStacker__factory, IERC721__factory, IVe, IVe__factory
+} from "../../../typechain";
+import {BscAddresses} from "../../../scripts/addresses/BscAddresses";
+import {TimeUtils} from "../../TimeUtils";
+import {TokenUtils} from "../../TokenUtils";
 import {parseUnits} from "ethers/lib/utils";
 
 

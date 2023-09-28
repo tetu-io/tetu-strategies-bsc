@@ -12,12 +12,14 @@
 pragma solidity 0.8.4;
 
 import "../UniversalLendStrategy.sol";
-import "../../third_party/venus/IUnitroller.sol";
-import "../../third_party/venus/IVToken.sol";
+import "../../third_party/aave/IAToken.sol";
+import "../../third_party/aave/ILendingPool.sol";
+import "../../third_party/aave/IAaveIncentivesController.sol";
+import "../../third_party/aave/IProtocolDataProvider.sol";
 
-/// @title Contract for Venus strategy
-/// @author Aleh
-abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
+/// @title Contract for RadiantV2 simple supply strategy simplified
+/// @author belbix, Aleh
+abstract contract Radiant2StrategyBase is UniversalLendStrategy {
   using SafeERC20 for IERC20;
 
   /// ******************************************************
@@ -26,20 +28,15 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
 
   /// @notice Version of the contract
   /// @dev Should be incremented when contract changed
-  string public constant VERSION = "1.0.2";
+  string public constant VERSION = "1.0.1";
 
-  IStrategy.Platform public constant override platform = IStrategy.Platform.SLOT_47; // todo change
+  IStrategy.Platform public constant override platform = IStrategy.Platform.SLOT_48; //todo change
   /// @notice Strategy type for statistical purposes
-  string public constant override STRATEGY_NAME = "VenusSupplyStrategyBase";
-  IUnitroller public constant UNITROLLER = IUnitroller(0xfD36E2c2a6789Db23113685031d7F16329158384);
-  address internal constant XVS_TOKEN = 0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63;
+  string public constant override STRATEGY_NAME = "Radiant2StrategyBase";
 
-  IVToken public vToken;
+  ILendingPool public constant AAVE_LENDING_POOL = ILendingPool(0xd50Cf00b6e600Dd036Ba8eF475677d816d6c4281);
+  IProtocolDataProvider public constant AAVE_DATA_PROVIDER = IProtocolDataProvider(0x2f9D57E97C3DFED8676e605BC504a48E0c5917E9);
 
-  ////////////////////// GAP ///////////////////////////
-  //slither-disable-next-line unused-state
-  uint256[49] private ______gap;
-  //////////////////////////////////////////////////////
 
   /// ******************************************************
   ///                    Initialization
@@ -50,62 +47,59 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
     address controller_,
     address underlying_,
     address vault_,
-    address oToken_,
     uint buybackRatio_
   ) public initializer {
-    address[] memory rewardTokens_ = new address[](1);
-    rewardTokens_[0] = XVS_TOKEN;
-
     UniversalLendStrategy.initializeLendStrategy(
       controller_,
       underlying_,
       vault_,
       buybackRatio_,
-      rewardTokens_
+      new address[](0)
     );
 
-    vToken = IVToken(oToken_);
-    require(vToken.underlying() == _underlying(), "Wrong underlying");
+    address aToken;
+    (aToken,,) = AAVE_DATA_PROVIDER.getReserveTokensAddresses(underlying_);
+    require(IAToken(aToken).UNDERLYING_ASSET_ADDRESS() == _underlying(), "Wrong underlying");
   }
 
   /// ******************************************************
   ///                    Views
   /// ******************************************************
 
-  /// @notice Strategy balance in the pool
-  /// @dev This is amount that we can withdraw
-  /// @return Balance amount in underlying tokens
+  /// @notice Invested assets in the pool
   function _rewardPoolBalance() internal override view returns (uint) {
-    IVToken _vToken = vToken;
-    return _vToken.balanceOf(address(this)) * _vToken.exchangeRateStored() / 1e18;
+    return localBalance;
   }
 
   /// @notice Return approximately amount of reward tokens ready to claim
-  function readyToClaim() external pure override returns (uint256[] memory) {
-    return new uint[](0);
+  function readyToClaim() external pure override returns (uint[] memory) {
+    uint[] memory rewards = new uint256[](1);
+    return rewards;
   }
 
   /// @notice TVL of the underlying in the pool
   function poolTotalAmount() external view override returns (uint256) {
-    // exchangeRate = (totalCash + totalBorrows - totalReserves) / totalSupply
-    return vToken.totalSupply() * vToken.exchangeRateStored() / 1e18;
+    address aToken;
+    (aToken,,) = AAVE_DATA_PROVIDER.getReserveTokensAddresses(_underlying());
+    return IERC20(_underlying()).balanceOf(aToken);
   }
 
   /// ******************************************************
   ///              Internal logic implementation
   /// ******************************************************
 
+
   /// @dev Refresh rates and return actual deposited balance in underlying tokens
   function _getActualPoolBalance() internal view override returns (uint) {
-    return _rewardPoolBalance();
+    (uint suppliedUnderlying,,,,,,,,) = AAVE_DATA_PROVIDER.getUserReserveData(_underlying(), address(this));
+    return suppliedUnderlying;
   }
 
   /// @dev Deposit to pool and increase local balance
   function _simpleDepositToPool(uint amount) internal override {
     address u = _underlying();
-    IVToken _vToken = vToken;
-    _approveIfNeeds(u, amount, address(_vToken));
-    _vToken.mint(amount);
+    _approveIfNeeds(u, amount, address(AAVE_LENDING_POOL));
+    AAVE_LENDING_POOL.deposit(u, amount, address(this), 0);
   }
 
   /// @dev Perform only withdraw action, without changing local balance
@@ -113,11 +107,11 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
     address u = _underlying();
     uint underlyingBalanceBefore = IERC20(u).balanceOf(address(this));
     if (amount < poolBalance) {
-      vToken.redeemUnderlying(amount);
       withdrewAll = false;
+      AAVE_LENDING_POOL.withdraw(u, amount, address(this));
     } else {
-      vToken.redeemUnderlying(amount);
       withdrewAll = true;
+      AAVE_LENDING_POOL.withdraw(u, type(uint).max, address(this));
     }
     uint underlyingBalanceAfter = IERC20(u).balanceOf(address(this));
     withdrawnAmount = underlyingBalanceAfter - underlyingBalanceBefore;
@@ -125,15 +119,14 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
 
   /// @dev Withdraw all and set localBalance to zero
   function _withdrawAllFromPool() internal override {
-    vToken.redeemUnderlying(_rewardPoolBalance());
+    AAVE_LENDING_POOL.withdraw(_underlying(), type(uint).max, address(this));
   }
 
   /// @dev Claim distribution rewards
   function _claimReward() internal override {
-    UNITROLLER.claimVenus(address(this));
+    // no rewards for the simple supply
   }
 
-  function _preHardWorkHook() internal override {
-    vToken.accrueInterest();
-  }
+  //slither-disable-next-line unused-state
+  uint256[49] private ______gap;
 }

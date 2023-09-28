@@ -1,16 +1,16 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import {StrategyTestUtils} from "../../StrategyTestUtils";
-import {DeployInfo} from "../../DeployInfo";
-import {SpecificStrategyTest} from "../../SpecificStrategyTest";
+import {StrategyTestUtils} from "../StrategyTestUtils";
+import {DeployInfo} from "../DeployInfo";
+import {SpecificStrategyTest} from "../SpecificStrategyTest";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {CoreContractsWrapper} from "../../../CoreContractsWrapper";
-import {DeployerUtilsLocal} from "../../../../scripts/deploy/DeployerUtilsLocal";
-import {ConeStacker__factory, ISmartVault, IStrategy, StrategyCone} from "../../../../typechain";
-import {ToolsContractsWrapper} from "../../../ToolsContractsWrapper";
-import {universalStrategyTest} from "../../UniversalStrategyTest";
-import {DoHardWorkLoopBase} from "../../DoHardWorkLoopBase";
-import {BscAddresses} from "../../../../scripts/addresses/BscAddresses";
+import {CoreContractsWrapper} from "../../CoreContractsWrapper";
+import {DeployerUtilsLocal} from "../../../scripts/deploy/DeployerUtilsLocal";
+import {ConeStacker__factory, ISmartVault, IStrategy, StrategyCone} from "../../../typechain";
+import {ToolsContractsWrapper} from "../../ToolsContractsWrapper";
+import {universalStrategyTest} from "../UniversalStrategyTest";
+import {DoHardWorkLoopBase} from "../DoHardWorkLoopBase";
+import {BscAddresses} from "../../../scripts/addresses/BscAddresses";
 
 
 const {expect} = chai;

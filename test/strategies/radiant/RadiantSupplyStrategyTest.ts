@@ -1,24 +1,20 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import {config as dotEnvConfig} from "dotenv";
-import {StrategyTestUtils} from "../../StrategyTestUtils";
-import {DeployInfo} from "../../DeployInfo";
-import {SpecificStrategyTest} from "../../SpecificStrategyTest";
+import {StrategyTestUtils} from "../StrategyTestUtils";
+import {DeployInfo} from "../DeployInfo";
+import {SpecificStrategyTest} from "../SpecificStrategyTest";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {CoreContractsWrapper} from "../../../CoreContractsWrapper";
-import {DeployerUtilsLocal} from "../../../../scripts/deploy/DeployerUtilsLocal";
+import {CoreContractsWrapper} from "../../CoreContractsWrapper";
+import {DeployerUtilsLocal} from "../../../scripts/deploy/DeployerUtilsLocal";
 import {
   IStrategy,
-  ISmartVault,
-  StrategyVenusSupply__factory,
-  ITetuLiquidator__factory,
-  ITetuLiquidatorController__factory,
-  ISwapper__factory, IUniswapV2Pair__factory,
-} from "../../../../typechain";
-import {ToolsContractsWrapper} from "../../../ToolsContractsWrapper";
-import {universalStrategyTest} from "../../UniversalStrategyTest";
-import {DoHardWorkLoopBase} from "../../DoHardWorkLoopBase";
-import {BscAddresses} from "../../../../scripts/addresses/BscAddresses";
+  ISmartVault, Radiant2SupplyStrategy__factory,
+} from "../../../typechain";
+import {ToolsContractsWrapper} from "../../ToolsContractsWrapper";
+import {universalStrategyTest} from "../UniversalStrategyTest";
+import {DoHardWorkLoopBase} from "../DoHardWorkLoopBase";
+import {BscAddresses} from "../../../scripts/addresses/BscAddresses";
 import {BigNumber} from "ethers";
 import {EmergencyWithdrawFromPoolTest} from "./EmergencyWithdrawFromPoolTest";
 
@@ -44,72 +40,33 @@ const argv = require('yargs/yargs')()
 const {expect} = chai;
 chai.use(chaiAsPromised);
 
-const configureLiquidator = async (signer: SignerWithAddress, deployInfo: DeployInfo) => {
-  if (deployInfo.core) {
-    const liquidatorAddress = BscAddresses.LIQUIDATOR_ADDRESS;
-    const liquidator = ITetuLiquidator__factory.connect(liquidatorAddress, signer)
-    const liquidatorController = ITetuLiquidatorController__factory.connect(await liquidator.controller(), signer)
-    const gov = await DeployerUtilsLocal.impersonate(await liquidatorController.governance())
-    await liquidatorController.connect(gov).changeOperatorStatus(signer.address, true);
-
-    await liquidator.addLargestPools([{
-      pool: BscAddresses.XVS_WBNB_PANCAKESWAP_POOL,
-      swapper: BscAddresses.UNIV2_SWAPPER,
-      tokenIn: BscAddresses.XVS_TOKEN,
-      tokenOut: BscAddresses.WBNB_TOKEN,
-    }], true)
-
-    await liquidator.addLargestPools([{
-      pool: BscAddresses.BTCB_WETH_PANCAKESWAP_POOL,
-      swapper: BscAddresses.PANCAKEV3_SWAPPER,
-      tokenIn: BscAddresses.BTCB,
-      tokenOut: BscAddresses.WETH_TOKEN,
-    }], true)
-
-    await liquidator.addLargestPools([{
-      pool: BscAddresses.DAI_USDT_BITSWAP_POOL,
-      swapper: BscAddresses.UNIV2_SWAPPER,
-      tokenIn: BscAddresses.DAI_TOKEN,
-      tokenOut: BscAddresses.USDT_TOKEN,
-    }], true)
-
-    // // need to set fee
-    const univ2Swapper = ISwapper__factory.connect(BscAddresses.UNIV2_SWAPPER, signer);
-    const btcbWbnbPancakeswapPool = IUniswapV2Pair__factory.connect(BscAddresses.DAI_USDT_BITSWAP_POOL, signer);
-    await univ2Swapper.connect(gov).setFee(await btcbWbnbPancakeswapPool.factory(), 250);
-
-  }
-}
-
-describe('Venus supply tests', async () => {
-  const infos = [
-    [BscAddresses.vUSDT_TOKEN, BscAddresses.USDT_TOKEN],
-    [BscAddresses.vUSDC_TOKEN, BscAddresses.USDC_TOKEN],
-    [BscAddresses.vETH_TOKEN, BscAddresses.WETH_TOKEN],
-    [BscAddresses.vDAI_TOKEN, BscAddresses.DAI_TOKEN],
-    [BscAddresses.vBTC_TOKEN, BscAddresses.BTCB],
+describe('RadiantV2 supply tests', async () => {
+  const underlyings = [
+     BscAddresses.USDT_TOKEN,
+     BscAddresses.USDC_TOKEN,
+     // BscAddresses.DAI_TOKEN,
+     // BscAddresses.WETH_TOKEN,
+     // BscAddresses.BTCB,
   ]
 
   if (argv.disableStrategyTests || argv.hardhatChainId !== 56) {
     return;
   }
 
-  const strategyName = 'StrategyVenusSupply';
+  const strategyContractName = 'Radiant2SupplyStrategy';
 
   const deployInfo: DeployInfo = new DeployInfo();
   before(async function () {
     await StrategyTestUtils.deployCoreAndInit(deployInfo, argv.deployCoreContracts);
     const signer = await DeployerUtilsLocal.impersonate();
-    await configureLiquidator(signer, deployInfo);
+    // await configureLiquidator(signer, deployInfo);
   });
-  infos.forEach(info => {
+  underlyings.forEach(underlying => {
     // **********************************************
     // ************** CONFIG*************************
     // **********************************************
-    const strategyContractName = strategyName;
-    const vaultName = 'VenusStrategyTest_vault';
-    const vTokenAddress = info[0];
-    const underlying = info[1];
+    const vaultName = 'Radiant2SupplyStrategyTest_vault';
+
     // add custom liquidation path if necessary
     const forwarderConfigurator = null;
 
@@ -142,12 +99,11 @@ describe('Venus supply tests', async () => {
             signer,
             strategyContractName,
           );
-          const strat = StrategyVenusSupply__factory.connect(strategy.address, signer);
+          const strat = Radiant2SupplyStrategy__factory.connect(strategy.address, signer);
           await strat.initialize(
             core.controller.address,
             underlying,
             vaultAddress,
-            vTokenAddress,
             buyBackRatio
           );
           await core.controller.setRewardDistribution([strategy.address], true);
@@ -179,14 +135,11 @@ describe('Venus supply tests', async () => {
         _balanceTolerance,
         finalBalanceTolerance,
       );
-      hw.vaultRt = BscAddresses.ZERO_ADDRESS
-      // we may have some rewards in a form of XVS
-      hw.allowLittleDustInStrategyAfterFullExit = BigNumber.from(230000000)
       return hw;
     };
 
     universalStrategyTest(
-      strategyName + vaultName,
+      strategyContractName + vaultName,
       deployInfo,
       deployer,
       hwInitiator,

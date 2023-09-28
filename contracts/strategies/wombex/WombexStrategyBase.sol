@@ -12,12 +12,16 @@
 pragma solidity 0.8.4;
 
 import "../UniversalLendStrategy.sol";
-import "../../third_party/venus/IUnitroller.sol";
-import "../../third_party/venus/IVToken.sol";
 
-/// @title Contract for Venus strategy
+import "../../third_party/wombex/IPoolDepositor.sol";
+import "../../third_party/wombex/IAsset.sol";
+import "../../third_party/wombex/IWmxClaimZap.sol";
+import "../../third_party/wombex/IBaseRewardPool4626.sol";
+import "../../third_party/wombex/IPool.sol";
+
+/// @title Contract for Wombex simple supply strategy simplified
 /// @author Aleh
-abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
+abstract contract WombexStrategyBase is UniversalLendStrategy {
   using SafeERC20 for IERC20;
 
   /// ******************************************************
@@ -26,20 +30,21 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
 
   /// @notice Version of the contract
   /// @dev Should be incremented when contract changed
-  string public constant VERSION = "1.0.2";
+  string public constant VERSION = "1.0.0";
 
-  IStrategy.Platform public constant override platform = IStrategy.Platform.SLOT_47; // todo change
+  IStrategy.Platform public constant override platform = IStrategy.Platform.SLOT_49; //todo change
   /// @notice Strategy type for statistical purposes
-  string public constant override STRATEGY_NAME = "VenusSupplyStrategyBase";
-  IUnitroller public constant UNITROLLER = IUnitroller(0xfD36E2c2a6789Db23113685031d7F16329158384);
-  address internal constant XVS_TOKEN = 0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63;
+  string public constant override STRATEGY_NAME = "WombexStrategyBase";
 
-  IVToken public vToken;
+  IPoolDepositor public constant POOL_DEPOSITOR = IPoolDepositor(0xc2Ee2ab275BC3F38cA30E902211640D8bB58C4d1);
+  address public constant WOM_TOKEN = 0xAD6742A35fB341A9Cc6ad674738Dd8da98b94Fb1;
+  address public constant WMX_TOKEN = 0xa75d9ca2a0a1D547409D82e1B06618EC284A2CeD;
 
-  ////////////////////// GAP ///////////////////////////
-  //slither-disable-next-line unused-state
-  uint256[49] private ______gap;
-  //////////////////////////////////////////////////////
+  uint public constant PRICE_IMPACT = 50; // 0.5%
+  uint public constant PRICE_IMPACT_PRECISION = 1000;
+
+  IAsset public lpToken;
+  address public wmxLP;
 
   /// ******************************************************
   ///                    Initialization
@@ -49,46 +54,47 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
   function initializeStrategy(
     address controller_,
     address underlying_,
+    address lpToken_,
+    address wmxLP_,
     address vault_,
-    address oToken_,
     uint buybackRatio_
   ) public initializer {
-    address[] memory rewardTokens_ = new address[](1);
-    rewardTokens_[0] = XVS_TOKEN;
+
+    address [] memory rewardTokens = new address[](2);
+    rewardTokens[0] = WOM_TOKEN;
+    rewardTokens[1] = WMX_TOKEN;
 
     UniversalLendStrategy.initializeLendStrategy(
       controller_,
       underlying_,
       vault_,
       buybackRatio_,
-      rewardTokens_
+      rewardTokens
     );
 
-    vToken = IVToken(oToken_);
-    require(vToken.underlying() == _underlying(), "Wrong underlying");
+    lpToken = IAsset(lpToken_);
+    wmxLP = wmxLP_;
+    require(lpToken.underlyingToken() == _underlying(), "Wrong underlying");
   }
 
   /// ******************************************************
   ///                    Views
   /// ******************************************************
 
-  /// @notice Strategy balance in the pool
-  /// @dev This is amount that we can withdraw
-  /// @return Balance amount in underlying tokens
+  /// @notice Invested assets in the pool
   function _rewardPoolBalance() internal override view returns (uint) {
-    IVToken _vToken = vToken;
-    return _vToken.balanceOf(address(this)) * _vToken.exchangeRateStored() / 1e18;
+    return localBalance;
   }
 
   /// @notice Return approximately amount of reward tokens ready to claim
-  function readyToClaim() external pure override returns (uint256[] memory) {
-    return new uint[](0);
+  function readyToClaim() external pure override returns (uint[] memory) {
+    uint[] memory rewards = new uint256[](2);
+    return rewards;
   }
 
   /// @notice TVL of the underlying in the pool
   function poolTotalAmount() external view override returns (uint256) {
-    // exchangeRate = (totalCash + totalBorrows - totalReserves) / totalSupply
-    return vToken.totalSupply() * vToken.exchangeRateStored() / 1e18;
+    return lpToken.underlyingTokenBalance();
   }
 
   /// ******************************************************
@@ -97,26 +103,37 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
 
   /// @dev Refresh rates and return actual deposited balance in underlying tokens
   function _getActualPoolBalance() internal view override returns (uint) {
-    return _rewardPoolBalance();
+    uint lpBalance = IBaseRewardPool4626(wmxLP).balanceOf(address(this));
+    (uint res,) = POOL_DEPOSITOR.getWithdrawAmountOut(address(lpToken), _underlying(), lpBalance);
+    return res;
   }
 
   /// @dev Deposit to pool and increase local balance
   function _simpleDepositToPool(uint amount) internal override {
     address u = _underlying();
-    IVToken _vToken = vToken;
-    _approveIfNeeds(u, amount, address(_vToken));
-    _vToken.mint(amount);
+    _approveIfNeeds(u, amount, address(POOL_DEPOSITOR));
+    uint minLiquidity = amount * (PRICE_IMPACT_PRECISION - PRICE_IMPACT) / PRICE_IMPACT_PRECISION;
+    POOL_DEPOSITOR.deposit(address(lpToken), amount, minLiquidity, block.timestamp + 1, true);
   }
 
   /// @dev Perform only withdraw action, without changing local balance
   function _withdrawFromPoolWithoutChangeLocalBalance(uint amount, uint poolBalance) internal override returns (bool withdrewAll, uint withdrawnAmount) {
+    uint minAmountOut = amount * (PRICE_IMPACT_PRECISION - PRICE_IMPACT) / PRICE_IMPACT_PRECISION;
+
+    (uint lpAmount, uint reward) = POOL_DEPOSITOR.getDepositAmountOut(address(lpToken), amount);
+    lpAmount += reward;
+
+    uint lpAmountTotal = IBaseRewardPool4626(wmxLP).balanceOf(address(this));
+
+    lpAmount = Math.min(lpAmountTotal, lpAmount);
     address u = _underlying();
     uint underlyingBalanceBefore = IERC20(u).balanceOf(address(this));
+    _approveIfNeeds(wmxLP, lpAmount, address(POOL_DEPOSITOR));
     if (amount < poolBalance) {
-      vToken.redeemUnderlying(amount);
+      POOL_DEPOSITOR.withdraw(address(lpToken), lpAmount, minAmountOut, block.timestamp + 1, address(this));
       withdrewAll = false;
     } else {
-      vToken.redeemUnderlying(amount);
+      POOL_DEPOSITOR.withdraw(address(lpToken), lpAmount, minAmountOut, block.timestamp + 1, address(this));
       withdrewAll = true;
     }
     uint underlyingBalanceAfter = IERC20(u).balanceOf(address(this));
@@ -125,15 +142,19 @@ abstract contract VenusSupplyStrategyBase is UniversalLendStrategy {
 
   /// @dev Withdraw all and set localBalance to zero
   function _withdrawAllFromPool() internal override {
-    vToken.redeemUnderlying(_rewardPoolBalance());
+    uint lpAmount = IBaseRewardPool4626(wmxLP).balanceOf(address(this));
+    _approveIfNeeds(wmxLP, lpAmount, address(POOL_DEPOSITOR));
+    (uint underlyingAmount, ) = POOL_DEPOSITOR.getWithdrawAmountOut(address(lpToken), _underlying(), lpAmount);
+    uint minAmountOut = underlyingAmount * (PRICE_IMPACT_PRECISION - PRICE_IMPACT) / PRICE_IMPACT_PRECISION;
+    POOL_DEPOSITOR.withdrawFromOtherAsset(address(lpToken), _underlying(), lpAmount, minAmountOut, block.timestamp + 1, address(this));
+
   }
 
   /// @dev Claim distribution rewards
   function _claimReward() internal override {
-    UNITROLLER.claimVenus(address(this));
+    IBaseRewardPool4626(wmxLP).getReward();
   }
 
-  function _preHardWorkHook() internal override {
-    vToken.accrueInterest();
-  }
+  //slither-disable-next-line unused-state
+  uint256[49] private ______gap;
 }

@@ -1,7 +1,6 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {CoreContractsWrapper} from "../CoreContractsWrapper";
 import {
-  IERC20__factory,
   ISmartVault,
   IStrategy,
   IStrategySplitter__factory
@@ -16,7 +15,6 @@ import {expect} from "chai";
 import {PriceCalculatorUtils} from "../PriceCalculatorUtils";
 import {formatUnits} from "ethers/lib/utils";
 import {BscAddresses} from "../../scripts/addresses/BscAddresses";
-import {string} from "hardhat/internal/core/params/argumentTypes";
 
 
 export class DoHardWorkLoopBase {
@@ -30,16 +28,14 @@ export class DoHardWorkLoopBase {
   public readonly strategy: IStrategy;
   public readonly balanceTolerance: number;
   public readonly finalBalanceTolerance: number;
-  public vaultRt: string;
+  vaultRt = BscAddresses.ZERO_ADDRESS;
   vaultForUser: ISmartVault;
   undDec = 0;
   userDeposited = BigNumber.from(0);
   signerDeposited = BigNumber.from(0);
   userWithdrew = BigNumber.from(0);
-  userRTBal = BigNumber.from(0);
-  vaultRTBal = BigNumber.from(0);
-  veDistBal = BigNumber.from(0);
   feeCollectorRewardTokensBalances: BigNumber[] = [];
+  strategyRewardTokens: string[] = [];
   loops = 0;
   loopStartTs = 0;
   startTs = 0;
@@ -52,6 +48,9 @@ export class DoHardWorkLoopBase {
   totalToClaimInTetuN = 0;
   toClaimCheckTolerance = 0.3;
   allowLittleDustInStrategyAfterFullExit = BigNumber.from(0)
+  shouldEarnUnderlying = true;
+  shouldEarnRt = false;
+  allowDifferenceInExpectedOutAndActual = BigNumber.from(0);
 
   constructor(
     signer: SignerWithAddress,
@@ -92,11 +91,13 @@ export class DoHardWorkLoopBase {
 
   protected async init() {
     this.undDec = await TokenUtils.decimals(this.underlying);
-    const strategyRewardTokens: string[] = [];
-    strategyRewardTokens.push(... await this.strategy.rewardTokens());
-    strategyRewardTokens.push(this.underlying);
-
-    for (const rt of strategyRewardTokens) {
+    if(this.shouldEarnRt) {
+      this.strategyRewardTokens.push(...await this.strategy.rewardTokens());
+    }
+    if(this.shouldEarnUnderlying){
+      this.strategyRewardTokens.push(this.underlying);
+    }
+    for (const rt of this.strategyRewardTokens) {
       const rtBal = await TokenUtils.balanceOf(rt, BscAddresses.DEFAULT_PERF_FEE_RECEIVER);
       this.feeCollectorRewardTokensBalances.push(rtBal);
     }
@@ -205,7 +206,11 @@ export class DoHardWorkLoopBase {
       const balAfter = await TokenUtils.balanceOf(this.underlying, this.user.address);
       console.log('Withdrew expected', formatUnits(expectedOutput, this.undDec))
       console.log('Withdrew actual', formatUnits(balAfter.sub(balBefore), this.undDec))
-      if (check) expect(expectedOutput.sub(balAfter.sub(balBefore)).toNumber()).below(10, 'withdrew lower than expected');
+      console.log("expected output", expectedOutput.toString())
+      console.log("actual output", balAfter.sub(balBefore).toString())
+      const diffPercents = expectedOutput.mul(BigNumber.from(10).pow(18)).div(balAfter).sub(BigNumber.from(10).pow(18))
+
+      if (check) expect(diffPercents).lte(BigNumber.from(this.allowDifferenceInExpectedOutAndActual), 'withdrew lower than expected');
 
       await this.userCheckBalance(this.userDeposited);
       this.userWithdrew = this.userDeposited;
@@ -223,7 +228,8 @@ export class DoHardWorkLoopBase {
       const balAfter = await TokenUtils.balanceOf(this.underlying, this.user.address);
       console.log('Withdrew expected', formatUnits(expectedOutput, this.undDec))
       console.log('Withdrew actual', formatUnits(balAfter.sub(balBefore), this.undDec))
-      if (check) expect(expectedOutput.sub(balAfter.sub(balBefore)).toNumber()).below(10, 'withdrew lower than expected');
+      const diffPercents = expectedOutput.mul(BigNumber.from(10).pow(18)).div(balAfter).sub(BigNumber.from(10).pow(18))
+      if (check) expect(diffPercents).lte(BigNumber.from(this.allowDifferenceInExpectedOutAndActual), 'withdrew lower than expected');
 
       await this.userCheckBalance(this.userWithdrew.add(amount));
       const userUndBalAfter = await TokenUtils.balanceOf(this.underlying, this.user.address);
@@ -290,28 +296,27 @@ export class DoHardWorkLoopBase {
     const roiThisCycle = ((earnedUsdcThisCycle / tvlUsdc) / loopTime) * 100 * Misc.SECONDS_OF_YEAR;
 
     const rtEarnedByFeeCollector: string[] = []
-
-    const strategyRewardTokens: string[] = [];
-    strategyRewardTokens.push(... await this.strategy.rewardTokens());
-    strategyRewardTokens.push(this.underlying);
-
-    for (let i = 0; i < strategyRewardTokens.length; i++) {
-      const rt = strategyRewardTokens[i];
+    for (let ii = 0; ii < this.strategyRewardTokens.length; ii++) {
+      const rt = this.strategyRewardTokens[ii];
       const rtBal = await TokenUtils.balanceOf(rt, BscAddresses.DEFAULT_PERF_FEE_RECEIVER);
-      const rtEarned = rtBal.sub(this.feeCollectorRewardTokensBalances[i]);
-      // expect(rtEarned).is.gt(0, 'Protocol should earn RTs');
+      const rtEarned = rtBal.sub(this.feeCollectorRewardTokensBalances[ii]);
+
+      expect(rtEarned).is.gt(0, 'Protocol should earn RTs');
+      rtEarnedByFeeCollector.push(rt.toString());
       rtEarnedByFeeCollector.push(rtEarned.toString());
     }
 
     console.log('++++++++++++++++ ROI ' + i + ' ++++++++++++++++++++++++++')
     console.log('Loop time', (loopTime / 60 / 60).toFixed(1), 'hours');
-    console.log('TETU earned total', stratEarnedTotalN);
-    console.log('TETU earned for this loop', stratEarnedN);
     console.log('ROI total', roi);
     console.log('ROI current', roiThisCycle);
     console.log('FeeCollector earned RTs', rtEarnedByFeeCollector);
     console.log('+++++++++++++++++++++++++++++++++++++++++++++++')
     Misc.printDuration('fLoopPrintROIAndSaveEarned completed', start);
+
+    for (let ii = 0; ii < this.strategyRewardTokens.length; ii++) {
+      this.feeCollectorRewardTokensBalances[ii] = BigNumber.from(0);
+    }
   }
 
   protected async afterBlockAdvance() {
@@ -375,7 +380,6 @@ export class DoHardWorkLoopBase {
     // exit for signer
 
     // need to call hard work for sell a little excess rewards
-    // todo: clarity if it is ok to move in above strategy.withdrawAllToVault
     await this.strategy.doHardWork({gasLimit: 10_000_000});
 
     await this.vault.connect(this.signer).exit({gasLimit: 10_000_000});
@@ -396,6 +400,8 @@ export class DoHardWorkLoopBase {
 
     const userDepositedN = +utils.formatUnits(this.userDeposited, this.undDec);
     // some pools have auto compounding so user balance can increase
+    const underlyingInStrategy = await TokenUtils.balanceOf(this.underlying, this.strategy.address);
+    console.log('>>>> underlying in strategy', underlyingInStrategy.toString());
     const userUnderlyingBalanceAfter = await TokenUtils.balanceOf(this.underlying, this.user.address);
     const userUnderlyingBalanceAfterN = +utils.formatUnits(userUnderlyingBalanceAfter, this.undDec);
     const userBalanceExpected = userDepositedN - (userDepositedN * this.finalBalanceTolerance);

@@ -1,11 +1,11 @@
-import {SpecificStrategyTest} from "../../SpecificStrategyTest";
-import {TokenUtils} from "../../../TokenUtils";
-import {IStrategy, ISmartVault} from "../../../../typechain";
+import {SpecificStrategyTest} from "../SpecificStrategyTest";
+import {TokenUtils} from "../../TokenUtils";
+import {IStrategy, ISmartVault} from "../../../typechain";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import {DeployInfo} from "../../DeployInfo";
-import {VaultUtils} from "../../../VaultUtils";
+import {DeployInfo} from "../DeployInfo";
+import {VaultUtils} from "../../VaultUtils";
 import {utils} from "ethers";
 
 const {expect} = chai;
